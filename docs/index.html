@@ -741,6 +741,9 @@
             // Apply rotation using Euler angles
             const euler = new THREE.Euler(pitch, yaw, 0, 'YXZ');
             camera.quaternion.setFromEuler(euler);
+            
+            // Mark scene as needing render
+            hasMovement = true;
         });
 
         // Movement
@@ -801,6 +804,8 @@
         // =====================================================
         
         let prevTime = performance.now();
+        let needsRender = true; // Track if render is needed
+        let hasMovement = false; // Track current frame movement
 
         function updateCamera(delta) {
             let moveStep = 0;
@@ -819,16 +824,19 @@
                     camera.position.x = nextX;
                     camera.position.z = nextZ;
                 }
+                hasMovement = true;
             }
             
             // Turn left/right
             if (moveState.left) {
                 yaw += turnSpeed * delta * 60;
                 turned = true;
+                hasMovement = true;
             }
             if (moveState.right) {
                 yaw -= turnSpeed * delta * 60;
                 turned = true;
+                hasMovement = true;
             }
             
             // Update camera rotation if turned
@@ -843,6 +851,9 @@
 
             const time = performance.now();
             const delta = (time - prevTime) / 1000;
+            
+            // Reset movement flag for this frame
+            hasMovement = false;
 
             if (isLocked) {
                 updateCamera(delta);
@@ -852,12 +863,21 @@
             }
 
             // Rotate sculptures for visual interest
-            loadedRoses.forEach(rose => {
-                rose.rotation.y += 0.01;
-            });
+            const sculpturesAnimating = loadedRoses.length > 0;
+            if (sculpturesAnimating) {
+                loadedRoses.forEach(rose => {
+                    rose.rotation.y += 0.01;
+                });
+                needsRender = true; // Sculptures are animating
+            }
+
+            // Render only if movement occurred or sculptures are animating
+            if (hasMovement || needsRender) {
+                renderer.render(scene, camera);
+                needsRender = false; // Reset after rendering
+            }
 
             prevTime = time;
-            renderer.render(scene, camera);
         }
 
         // Handle window resize
