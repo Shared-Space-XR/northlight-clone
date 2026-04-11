@@ -34,6 +34,54 @@
             line-height: 1.5;
             margin-bottom: 5px;
         }
+        #modeSelector {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 100;
+        }
+        .mode-button {
+            padding: 8px 15px;
+            margin: 5px 0;
+            border: 2px solid #666;
+            background: rgba(100, 100, 100, 0.5);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        .mode-button:hover:not(:disabled) {
+            background: rgba(100, 100, 100, 0.8);
+            border-color: white;
+        }
+        .mode-button.active {
+            background: rgba(0, 150, 0, 0.8);
+            border-color: #00ff00;
+        }
+        .mode-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        #debugCheckbox {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #666;
+        }
+        #debugCheckbox label {
+            display: flex;
+            align-items: center;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        #debugCheckbox input {
+            margin-right: 8px;
+            cursor: pointer;
+        }
         #loading {
             position: absolute;
             top: 50%;
@@ -49,13 +97,25 @@
     </style>
 </head>
 <body>
+    <div id="modeSelector">
+        <button class="mode-button active" id="gameModeBtn">Game Mode</button>
+        <button class="mode-button" id="exploreModeBtn">Explore Mode</button>
+        <div id="debugCheckbox">
+            <label>
+                <input type="checkbox" id="debugModeCheckbox">
+                Debug Mode
+            </label>
+        </div>
+    </div>
     <div id="info">
         <h2>Northlight Gallery</h2>
-        <p><strong>Controls:</strong></p>
-        <p>WASD / Arrow Keys - Move</p>
-        <p>Mouse - Look around</p>
-        <p>Click to enable controls</p>
-        <p>ESC - Release mouse</p>
+        <div id="controlsInfo">
+            <p><strong>Game Mode Controls:</strong></p>
+            <p>WASD / Arrow Keys - Move</p>
+            <p>Mouse - Look around</p>
+            <p>Click to enable</p>
+            <p>ESC - Release mouse</p>
+        </div>
     </div>
     <div id="loading">Loading...</div>
 
@@ -79,6 +139,10 @@
         // Camera
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 5, 30); // 5ft eye height (scaled)
+        
+        // Door positions and wall colliders for game mode
+        let doorPositions = {};
+        let wallColliders = []; // Array of bounding boxes for collision detection
 
         // Renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -86,622 +150,580 @@
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.NoToneMapping;
+        renderer.localClippingEnabled = true; // Enable local clipping for Y-axis cropping
         document.body.appendChild(renderer.domElement);
 
-        // Scale: 1 unit = 1 foot
-        const WALL_HEIGHT = 12; // 12 feet tall walls
-        const WALL_THICKNESS = 0.5;
-
-        // Materials
-        const wallMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0xffffff,
-            roughness: 0.9,
-            metalness: 0.0
+        // =====================================================
+        // NAVIGATION MODE SETUP
+        // =====================================================
+        
+        // Detect if device is mobile/touch
+        const isMobileDevice = () => {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                   (navigator.maxTouchPoints && navigator.maxTouchPoints > 2);
+        };
+        
+        const isMobile = isMobileDevice();
+        let currentMode = 'explore';
+        let needsRender = true;
+        let isLocked = false;
+        
+        // UI Setup
+        const gameModeBtn = document.getElementById('gameModeBtn');
+        const exploreModeBtn = document.getElementById('exploreModeBtn');
+        const controlsInfo = document.getElementById('controlsInfo');
+        
+        if (isMobile) {
+            gameModeBtn.disabled = true;
+        }
+        
+        function setMode(mode) {
+            currentMode = mode;
+            needsRender = true;
+            
+            if (mode === 'game') {
+                gameModeBtn.classList.add('active');
+                exploreModeBtn.classList.remove('active');
+                controlsInfo.innerHTML = `
+                    <p><strong>Game Mode Controls:</strong></p>
+                    <p>WASD / Arrow Keys - Move</p>
+                    <p>Mouse - Look around</p>
+                    <p>Click to enable</p>
+                    <p>ESC - Release mouse</p>
+                `;
+                isLocked = false;
+                // Preserve current X and Z from explore mode, set to ground level (Y=5 for eye height)
+                const currentX = camera.position.x;
+                const currentZ = camera.position.z;
+                camera.position.set(currentX, 5, currentZ);
+                console.log('Switched to Game Mode at position:', camera.position);
+            } else {
+                gameModeBtn.classList.remove('active');
+                exploreModeBtn.classList.add('active');
+                controlsInfo.innerHTML = `
+                    <p><strong>Explore Mode Controls:</strong></p>
+                    <p>Mouse Drag - Rotate</p>
+                    <p>Shift + Drag - Pan</p>
+                    <p>Scroll / Pinch - Zoom</p>
+                    <p>Two-finger Drag - Rotate (touch)</p>\
+                `;
+            }
+        }
+        
+        gameModeBtn.addEventListener('click', () => setMode('game'));
+        exploreModeBtn.addEventListener('click', () => setMode('explore'));
+        
+        // Initialize to explore mode
+        setMode('explore');
+        
+        // Debug mode checkbox
+        const debugCheckbox = document.getElementById('debugModeCheckbox');
+        debugCheckbox.addEventListener('change', (event) => {
+            debugMode = event.target.checked;
+            if (modelScene) {
+                updateDebugLabels(modelScene);
+                needsRender = true;
+            }
         });
         
-        const floorMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x8B7355,
-            roughness: 0.8,
-            metalness: 0.1
+        // Explore mode camera state
+        let exploreCameraDistance = 70;
+        let exploreCameraPan = new THREE.Vector2(0, 0);
+        let exploreRotation = new THREE.Vector2(0.5, 0.5);
+        let lastExploreMousePos = new THREE.Vector2(0, 0);
+        let isExploreRightClick = false;
+
+        document.body.appendChild(renderer.domElement);
+
+        // Load the Northlight 3D model
+        const gltfLoader = new GLTFLoader();
+        const textureLoader = new THREE.TextureLoader();
+        let modelScene = null;
+        let windowModel = null;
+        let frontDoorModel = null;
+        const wallVisuals = new THREE.Group();
+        scene.add(wallVisuals);
+
+        // Load window model
+        gltfLoader.load('./building/window.glb', (gltf) => {
+            windowModel = gltf.scene;
+            windowModel.scale.set(12, 12, 12);
+            windowModel.position.set(0, 0, -10);
+            console.log('Window model loaded');
+        }, undefined, (error) => {
+            console.error('Error loading window model:', error);
         });
 
-        const ceilingMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0xf5f5f5,
-            roughness: 0.9,
-            metalness: 0.0
+        // Load front door model
+        gltfLoader.load('./building/frontdoor.glb', (gltf) => {
+            frontDoorModel = gltf.scene;
+            frontDoorModel.scale.set(10, 10, 10);
+            console.log('Front door model loaded');
+        }, undefined, (error) => {
+            console.error('Error loading front door model:', error);
         });
 
-        const beamMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x5C4033,
-            roughness: 0.7,
-            metalness: 0.1
-        });
-
-        const ductMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0xC0C0C0,
-            roughness: 0.4,
-            metalness: 0.9
-        });
-
-        // Helper function to create walls
-        function createWall(x, z, width, depth, height = WALL_HEIGHT) {
-            const geometry = new THREE.BoxGeometry(width, height, depth);
-            const wall = new THREE.Mesh(geometry, wallMaterial);
-            wall.position.set(x, height / 2, z);
-            wall.castShadow = true;
-            wall.receiveShadow = true;
-            return wall;
-        }
-
-        // Create floor
-        function createFloor(x, z, width, depth) {
-            const geometry = new THREE.BoxGeometry(width, 0.2, depth);
-            const floor = new THREE.Mesh(geometry, floorMaterial);
-            floor.position.set(x, 0, z);
-            floor.receiveShadow = true;
-            return floor;
-        }
-
-        // Create false ceiling with beams and ducts
-        function createFalseCeiling(x, z, width, depth) {
-            const group = new THREE.Group();
+        gltfLoader.load('Northlight.glb', (gltf) => {
+            const model = gltf.scene;
+            modelScene = model;
             
-            // False ceiling panel
-            const ceilingGeometry = new THREE.BoxGeometry(width, 0.2, depth);
-            const ceiling = new THREE.Mesh(ceilingGeometry, ceilingMaterial);
-            ceiling.position.set(0, 0, 0);
-            ceiling.receiveShadow = true;
-            group.add(ceiling);
+            // Scale up the model
+            model.scale.set(10, 10, 10);
+            model.position.set(0, 14, 0);
             
-            // Wooden beams (main perimeter beams)
-            const beamHeight = 0.8;
-            const beamWidth = 0.4;
+            // Calculate model bounds to set up Y-axis clipping and ground footprint
+            model.updateWorldMatrix(true, false);
+            const modelBbox = new THREE.Box3().setFromObject(model);
+            const modelHeight = modelBbox.max.y - modelBbox.min.y;
+            const cropHeight = modelBbox.min.y + modelHeight * 0.7; // Keep 70% from bottom (clip top 30%)
             
-            // Perimeter beams
-            // North beam
-            const northBeamGeom = new THREE.BoxGeometry(width, beamHeight, beamWidth);
-            const northBeam = new THREE.Mesh(northBeamGeom, beamMaterial);
-            northBeam.position.set(0, -beamHeight/2, -depth/2 + beamWidth/2);
-            northBeam.castShadow = true;
-            group.add(northBeam);
+            // Create clipping plane to hide top 30% (plane normal points down to keep bottom)
+            modelClippingPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), cropHeight);
             
-            // South beam
-            const southBeam = new THREE.Mesh(northBeamGeom, beamMaterial);
-            southBeam.position.set(0, -beamHeight/2, depth/2 - beamWidth/2);
-            southBeam.castShadow = true;
-            group.add(southBeam);
+            // Create clipping planes for ground footprint (X and Z axes)
+            const groundClippingPlanes = [
+                new THREE.Plane(new THREE.Vector3(1, 0, 0), -modelBbox.min.x),   // Left boundary
+                new THREE.Plane(new THREE.Vector3(-1, 0, 0), modelBbox.max.x),   // Right boundary
+                new THREE.Plane(new THREE.Vector3(0, 0, 1), -modelBbox.min.z),   // Front boundary
+                new THREE.Plane(new THREE.Vector3(0, 0, -1), modelBbox.max.z)    // Back boundary
+            ];
             
-            // East beam
-            const eastBeamGeom = new THREE.BoxGeometry(beamWidth, beamHeight, depth);
-            const eastBeam = new THREE.Mesh(eastBeamGeom, beamMaterial);
-            eastBeam.position.set(width/2 - beamWidth/2, -beamHeight/2, 0);
-            eastBeam.castShadow = true;
-            group.add(eastBeam);
+            // Apply ground clipping planes
+            groundMaterial.clippingPlanes = groundClippingPlanes;
             
-            // West beam
-            const westBeam = new THREE.Mesh(eastBeamGeom, beamMaterial);
-            westBeam.position.set(-width/2 + beamWidth/2, -beamHeight/2, 0);
-            westBeam.castShadow = true;
-            group.add(westBeam);
+            // Apply clipping plane to all materials
+            wallpaperMaterial.clippingPlanes = [modelClippingPlane];
+            brickMaterial.clippingPlanes = [modelClippingPlane];
+            whiteMaterial.clippingPlanes = [modelClippingPlane];
+            greenMaterial.clippingPlanes = [modelClippingPlane];
+            yellowMaterial.clippingPlanes = [modelClippingPlane];
             
-            // Interior cross beams (grid pattern)
-            const spacing = 8; // Beams every 8 feet
-            for (let i = -Math.floor(width/2); i <= Math.floor(width/2); i += spacing) {
-                if (Math.abs(i) > beamWidth) { // Skip if overlapping with perimeter
-                    const crossBeamGeom = new THREE.BoxGeometry(beamWidth, beamHeight, depth);
-                    const crossBeam = new THREE.Mesh(crossBeamGeom, beamMaterial);
-                    crossBeam.position.set(i, -beamHeight/2, 0);
-                    crossBeam.castShadow = true;
-                    group.add(crossBeam);
+            // Find door positions and wall colliders
+            model.traverse((child) => {
+                if (child.isMesh) {
+                    // Apply clipping plane to existing materials
+                    const mats = Array.isArray(child.material) ? child.material : [child.material];
+                    mats.forEach(mat => {
+                        if (mat) {
+                            mat.clippingPlanes = [modelClippingPlane];
+                        }
+                    });
+                    
+                    const bbox = new THREE.Box3().setFromObject(child);
+                    const center = bbox.getCenter(new THREE.Vector3());
+                    const size = bbox.getSize(new THREE.Vector3());
+                    const name = child.name.toLowerCase();
+                    
+                    // Store door positions
+                    if (name.includes('door')) {
+                        doorPositions[child.name] = center.clone();
+                        console.log('Found door:', child.name, 'at position:', center);
+                    }
+                    
+                    // Detect and store wall colliders (tall structures)
+                    if (size.y > 5 && (size.x > 1 || size.z > 1)) {
+                        wallColliders.push(bbox.clone());
+                        console.log('Added wall collider:', child.name, 'Size:', size);
+                    }
                 }
-            }
+            });
             
-            // AC Ducts (rectangular metal ducts running through ceiling)
-            const ductWidth = 1.2;
-            const ductHeight = 0.6;
+            // Apply materials to walls and windows
+            colorizeModel(model);
             
-            // Main duct running lengthwise
-            const mainDuctGeom = new THREE.BoxGeometry(ductWidth, ductHeight, depth);
-            const mainDuct = new THREE.Mesh(mainDuctGeom, ductMaterial);
-            mainDuct.position.set(0, -beamHeight - 0.3, 0);
-            mainDuct.castShadow = true;
-            group.add(mainDuct);
+            // Enable shadows on the model
+            model.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
             
-            // Side ducts
-            const sideDuctGeom = new THREE.BoxGeometry(ductWidth, ductHeight, depth);
-            const sideDuct1 = new THREE.Mesh(sideDuctGeom, ductMaterial);
-            sideDuct1.position.set(-width/3, -beamHeight - 0.3, 0);
-            sideDuct1.castShadow = true;
-            group.add(sideDuct1);
+            scene.add(model);
             
-            const sideDuct2 = new THREE.Mesh(sideDuctGeom, ductMaterial);
-            sideDuct2.position.set(width/3, -beamHeight - 0.3, 0);
-            sideDuct2.castShadow = true;
-            group.add(sideDuct2);
+            // Replace windows with window.glb model (with a small delay to ensure it's loaded)
+            setTimeout(() => {
+                replaceWindowsWithModel(model);
+                replaceDoorWithModel(model);
+                needsRender = true; // Trigger render after models are added
+            }, 100);
             
-            // Mini ducts running across (branch ducts)
-            const branchSpacing = 6;
-            for (let i = -Math.floor(depth/2); i <= Math.floor(depth/2); i += branchSpacing) {
-                const branchDuctGeom = new THREE.BoxGeometry(width * 0.6, 0.4, ductWidth);
-                const branchDuct = new THREE.Mesh(branchDuctGeom, ductMaterial);
-                branchDuct.position.set(0, -beamHeight - 0.5, i);
-                branchDuct.castShadow = true;
-                group.add(branchDuct);
-            }
+            // Update debug labels if needed
+            updateDebugLabels(model);
             
-            group.position.set(x, WALL_HEIGHT, z);
-            return group;
-        }
-
-        // =====================================================
-        // NORTHLIGHT GALLERY FLOOR PLAN
-        // Based on the measurements from the floor plan image
-        // =====================================================
-
-        // Main dimensions from floor plan (in feet):
-        // Left section: 20ft x 16.4ft (320 sq ft) + extension 50.9 linear ft (520 sq ft)
-        // Center section: 20.6ft width, corridor area
-        // Right sections: Various rooms totaling ~600+ sq ft
-
-        // LEFT GALLERY SECTION (320 sq ft + 520 sq ft)
-        // Upper left room: ~20ft x 16ft
-        const leftRoom1Width = 20;
-        const leftRoom1Depth = 16.4;
-        
-        // Lower left extension: ~9ft x 14ft (520 sq ft area)
-        const leftRoom2Width = 9;
-        const leftRoom2Depth = 14;
-
-        // Create Left Gallery floors
-        scene.add(createFloor(-28, -8, leftRoom1Width, leftRoom1Depth + leftRoom2Depth));
-        scene.add(createFalseCeiling(-28, -8, leftRoom1Width, leftRoom1Depth + leftRoom2Depth));
-
-        // Left gallery walls
-        // Back wall (north)
-        scene.add(createWall(-28, -leftRoom1Depth - leftRoom2Depth/2 + 5, leftRoom1Width + 1, WALL_THICKNESS));
-        // Left wall (west)
-        scene.add(createWall(-38, -8, WALL_THICKNESS, leftRoom1Depth + leftRoom2Depth + 2));
-        // Front partial wall
-        scene.add(createWall(-30, 8, 16, WALL_THICKNESS));
-
-        // CENTER CORRIDOR / MAIN GALLERY (535 sq ft - 76 linear feet)
-        const centerWidth = 20.6;
-        const centerDepth = 26;
-
-        scene.add(createFloor(-8, 0, centerWidth, centerDepth + 10));
-        scene.add(createFalseCeiling(-8, 0, centerWidth, centerDepth + 10));
-
-        // Center section walls
-        // Back wall
-        scene.add(createWall(-8, -18, centerWidth + 1, WALL_THICKNESS));
-
-        // RIGHT GALLERY SECTIONS
-        // Upper right: 47.6 linear ft, 204 sq ft (~17ft x 12ft)
-        const rightRoom1Width = 17;
-        const rightRoom1Depth = 12;
-
-        // Lower right: 50 linear ft, 338 sq ft
-        const rightRoom2Width = 17;
-        const rightRoom2Depth = 20;
-
-        // Right gallery floors
-        scene.add(createFloor(12, -5, rightRoom1Width + rightRoom2Width, rightRoom1Depth + 8));
-        scene.add(createFalseCeiling(12, -5, rightRoom1Width + rightRoom2Width, rightRoom1Depth + 8));
-
-        scene.add(createFloor(18, 12, rightRoom2Width, rightRoom2Depth - 5));
-        scene.add(createFalseCeiling(18, 12, rightRoom2Width, rightRoom2Depth - 5));
-
-        // Right section walls
-        // East wall (right side)
-        scene.add(createWall(28, 0, WALL_THICKNESS, centerDepth + 15));
-        // North wall (back)
-        scene.add(createWall(15, -18, 26, WALL_THICKNESS));
-
-        // Interior dividing walls
-        // Vertical divider in right section
-        scene.add(createWall(8, -12, WALL_THICKNESS, 12));
-        scene.add(createWall(18, 5, WALL_THICKNESS, 10));
-
-        // Front wall with entrance opening
-        scene.add(createWall(-25, 18, 25, WALL_THICKNESS));
-        scene.add(createWall(15, 18, 25, WALL_THICKNESS));
-
-        // Additional architectural details
-        // Column/pillar in center
-        const pillarGeometry = new THREE.BoxGeometry(1, WALL_HEIGHT, 1);
-        const pillar1 = new THREE.Mesh(pillarGeometry, wallMaterial);
-        pillar1.position.set(-18, WALL_HEIGHT/2, 0);
-        pillar1.castShadow = true;
-        scene.add(pillar1);
-
-        const pillar2 = new THREE.Mesh(pillarGeometry, wallMaterial);
-        pillar2.position.set(-18, WALL_HEIGHT/2, -10);
-        pillar2.castShadow = true;
-        scene.add(pillar2);
-
-        // =====================================================
-        // ROOF ENCLOSURE (above false ceiling)
-        // =====================================================
-        
-        const roofMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x8B8680,
-            roughness: 0.7,
-            metalness: 0.1
+            // Trigger render now that model is loaded
+            needsRender = true;
+        }, undefined, (error) => {
+            console.error('Error loading Northlight model:', error);
         });
-
-        const roofThickness = 0.3;
-        const roofHeight = WALL_HEIGHT + roofThickness;
-
-        // Roof for left gallery section
-        const leftRoofGeometry = new THREE.BoxGeometry(20, roofThickness, leftRoom1Depth + leftRoom2Depth);
-        const leftRoof = new THREE.Mesh(leftRoofGeometry, roofMaterial);
-        leftRoof.position.set(-28, roofHeight, -8);
-        leftRoof.castShadow = true;
-        leftRoof.receiveShadow = true;
-        scene.add(leftRoof);
-
-        // Roof for center corridor
-        const centerRoofGeometry = new THREE.BoxGeometry(centerWidth, roofThickness, centerDepth + 10);
-        const centerRoof = new THREE.Mesh(centerRoofGeometry, roofMaterial);
-        centerRoof.position.set(-8, roofHeight, 0);
-        centerRoof.castShadow = true;
-        centerRoof.receiveShadow = true;
-        scene.add(centerRoof);
-
-        // Roof for right gallery main section
-        const rightRoof1Geometry = new THREE.BoxGeometry(rightRoom1Width + rightRoom2Width, roofThickness, rightRoom1Depth + 8);
-        const rightRoof1 = new THREE.Mesh(rightRoof1Geometry, roofMaterial);
-        rightRoof1.position.set(12, roofHeight, -5);
-        rightRoof1.castShadow = true;
-        rightRoof1.receiveShadow = true;
-        scene.add(rightRoof1);
-
-        // Roof for right gallery upper section
-        const rightRoof2Geometry = new THREE.BoxGeometry(rightRoom2Width, roofThickness, rightRoom2Depth - 5);
-        const rightRoof2 = new THREE.Mesh(rightRoof2Geometry, roofMaterial);
-        rightRoof2.position.set(18, roofHeight, 12);
-        rightRoof2.castShadow = true;
-        rightRoof2.receiveShadow = true;
-        scene.add(rightRoof2);
 
         // Exterior ground
-        const groundGeometry = new THREE.PlaneGeometry(200, 200);
+        const groundGeometry = new THREE.PlaneGeometry(87, 185);
+        const floorTexture = textureLoader.load('./building/floor.jpg');
         const groundMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x3d5c3d,
-            roughness: 0.9
+            map: floorTexture,
+            roughness: 0.9,
+            clippingPlanes: []
         });
         const ground = new THREE.Mesh(groundGeometry, groundMaterial);
         ground.rotation.x = -Math.PI / 2;
-        ground.position.y = -0.1;
+        ground.position.set(-1, 0, -45);
         ground.receiveShadow = true;
         scene.add(ground);
 
         // =====================================================
-        // ARTWORK FRAMES (Gallery displays)
+        // LIGHTING
         // =====================================================
+
         
-        const frameMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0x2c2c2c,
-            roughness: 0.5
-        });
-        
-        const textureLoader = new THREE.TextureLoader();
-        
-        function createArtwork(x, y, z, width, height, rotationY = 0, imagePath = 'art/art1.jpg') {
-            const group = new THREE.Group();
-            
-            // Frame
-            const frameGeometry = new THREE.BoxGeometry(width + 0.3, height + 0.3, 0.15);
-            const frame = new THREE.Mesh(frameGeometry, frameMaterial);
-            group.add(frame);
-            
-            // Canvas with image texture
-            textureLoader.load(imagePath, (texture) => {
-                const canvasMaterial = new THREE.MeshStandardMaterial({ 
-                    map: texture,
-                    roughness: 0.3
-                });
-                const canvasGeometry = new THREE.BoxGeometry(width, height, 0.1);
-                const canvas = new THREE.Mesh(canvasGeometry, canvasMaterial);
-                canvas.position.z = 0.05;
-                group.add(canvas);
-            });
-            
-            group.position.set(x, y, z);
-            group.rotation.y = rotationY;
-            return group;
-        }
-
-        // Artwork on walls
-        const artworkPieces = [
-            // Left gallery artworks
-            { x: -37.5, y: 6, z: -5, width: 4, height: 3, rotationY: Math.PI / 2, image: 'art/art1.jpg' },
-            { x: -37.5, y: 6, z: -15, width: 5, height: 4, rotationY: Math.PI / 2, image: 'art/art2.jpg' },
-            { x: -28, y: 6, z: -22, width: 6, height: 4, rotationY: 0, image: 'art/art3.jpg' },
-            // Center gallery artworks
-            { x: 17, y: 6, z: 5, width: 2, height: 3, rotationY: -Math.PI / 2, image: 'art/art4.jpg' },
-            // Right gallery artworks
-            { x: 27.5, y: 6, z: -8, width: 5, height: 4, rotationY: -Math.PI / 2, image: 'art/art5.jpg' },
-            { x: 27.5, y: 6, z: 5, width: 4, height: 3, rotationY: -Math.PI / 2, image: 'art/art6.jpg' },
-            { x: 15, y: 6, z: -17.5, width: 6, height: 4, rotationY: 0, image: 'art/art7.jpg' }
-        ];
-
-        // Add artworks with spotlights
-        artworkPieces.forEach((art) => {
-            const artwork = createArtwork(art.x, art.y, art.z, art.width, art.height, art.rotationY, art.image);
-            scene.add(artwork);
-
-            // Add spotlight above each artwork
-            const artworkSpotlight = new THREE.SpotLight(0xfff5e6, 1.2);
-            artworkSpotlight.position.set(art.x, art.y + 3, art.z);
-            artworkSpotlight.angle = Math.PI / 6;
-            artworkSpotlight.penumbra = 0.5;
-            artworkSpotlight.decay = 2;
-            artworkSpotlight.distance = 20;
-            artworkSpotlight.castShadow = false;
-            artworkSpotlight.target.position.set(art.x, art.y, art.z);
-            scene.add(artworkSpotlight);
-            scene.add(artworkSpotlight.target);
-        });
-
-        // =====================================================
-        // SCARFS DISPLAY - Right wall section
-        // =====================================================
-        
-        const gltfLoader = new GLTFLoader();
-        const scarfPaths = [
-            'scarfs/scarf1.glb',
-            'scarfs/scarf2.glb',
-            'scarfs/scarf3.glb',
-            'scarfs/scarf4.glb',
-            'scarfs/scarf5.glb',
-            'scarfs/scarf6.glb',
-            'scarfs/scarf7.glb',
-            'scarfs/scarf8.glb'
-        ];
-
-        // Hang scarfs in a straight line along back wall
-        const scarfZ = -17; // Forward from back wall to make visible
-        const scarfY = 5.5; // Chest height
-        const scarfSpacing = 3.9; // Space between scarfs
-        const scarfStartX = -29; // Starting x position
-
-        scarfPaths.forEach((path, index) => {
-            gltfLoader.load(path, (gltf) => {
-                const scarf = gltf.scene;
-                scarf.scale.set(3.8, 3.8, 3.8);
-                
-                // Position in a straight line
-                scarf.position.set(
-                    scarfStartX + (index * scarfSpacing),
-                    scarfY,
-                    scarfZ
-                );
-                
-                // All face inward (toward the gallery)
-                scarf.rotation.y = 0;
-                
-                // Enable shadows
-                scarf.traverse((child) => {
-                    if (child.isMesh) {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                    }
-                });
-                
-                // Add point light above scarf
-                const pointLight = new THREE.PointLight(0xffffff, 1.8, 15);
-                const scarfX = scarfStartX + (index * scarfSpacing);
-                pointLight.position.set(scarfX, 8, scarfZ);
-                pointLight.castShadow = false;
-                scene.add(pointLight);
-                
-                scene.add(scarf);
-            }, undefined, (error) => {
-                console.error('Error loading scarf:', path, error);
-            });
-        });
-
-        // =====================================================
-        // LIGHTING - Northlight style (natural light from above)
-        // =====================================================
-        
-        // Primary ambient light for overall gallery illumination
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+        // Ambient light for overall illumination
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
         scene.add(ambientLight);
-
-        // Soft fill light from left side
-        const fillLightLeft = new THREE.DirectionalLight(0xfff8f0, 0.35);
-        fillLightLeft.position.set(-40, 20, 0);
-        scene.add(fillLightLeft);
-
-        // Soft fill light from right side
-        const fillLightRight = new THREE.DirectionalLight(0xfff8f0, 0.35);
-        fillLightRight.position.set(40, 20, 0);
-        scene.add(fillLightRight);
-
-        // Main skylight effect (directional light from above)
-        const skylight1 = new THREE.DirectionalLight(0xffffff, 0.9);
-        skylight1.position.set(-20, 30, 0);
-        skylight1.castShadow = true;
-        skylight1.shadow.mapSize.width = 2048;
-        skylight1.shadow.mapSize.height = 2048;
-        skylight1.shadow.camera.near = 0.5;
-        skylight1.shadow.camera.far = 100;
-        skylight1.shadow.camera.left = -50;
-        skylight1.shadow.camera.right = 50;
-        skylight1.shadow.camera.top = 50;
-        skylight1.shadow.camera.bottom = -50;
-        scene.add(skylight1);
-
-        const skylight2 = new THREE.DirectionalLight(0xffffff, 0.6);
-        skylight2.position.set(10, 25, -10);
-        scene.add(skylight2);
-
-        // Additional ceiling lights for uniform gallery illumination
-        const ceilingLight1 = new THREE.PointLight(0xfff5e6, 0.6, 40);
-        ceilingLight1.position.set(-20, 11, -5);
-        scene.add(ceilingLight1);
-
-        const ceilingLight2 = new THREE.PointLight(0xfff5e6, 0.6, 40);
-        ceilingLight2.position.set(10, 11, 5);
-        scene.add(ceilingLight2);
-
-        const ceilingLight3 = new THREE.PointLight(0xfff5e6, 0.5, 35);
-        ceilingLight3.position.set(20, 11, -10);
-        scene.add(ceilingLight3);
-
-        // Spotlight for artwork lighting
-        const spotLight1 = new THREE.SpotLight(0xfff5e6, 1);
-        spotLight1.position.set(-28, 11, -15);
-        spotLight1.angle = Math.PI / 6;
-        spotLight1.penumbra = 0.5;
-        spotLight1.target.position.set(-28, 5, -17);
-        scene.add(spotLight1);
-        scene.add(spotLight1.target);
-
-        const spotLight2 = new THREE.SpotLight(0xfff5e6, 1);
-        spotLight2.position.set(-8, 11, -10);
-        spotLight2.angle = Math.PI / 6;
-        spotLight2.penumbra = 0.5;
-        spotLight2.target.position.set(-8, 5, -15);
-        scene.add(spotLight2);
-        scene.add(spotLight2.target);
+        
+        // Directional light from above (like natural light through windows)
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        directionalLight.position.set(50, 50, 50);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 2048;
+        directionalLight.shadow.mapSize.height = 2048;
+        directionalLight.shadow.camera.left = -100;
+        directionalLight.shadow.camera.right = 100;
+        directionalLight.shadow.camera.top = 100;
+        directionalLight.shadow.camera.bottom = -100;
+        scene.add(directionalLight);
+        
+        // Fill light from another direction
+        const fillLight = new THREE.DirectionalLight(0xffffff, 0.2);
+        fillLight.position.set(-50, 30, -50);
+        scene.add(fillLight);
 
         // =====================================================
-        // SCULPTURE PEDESTALS
+        // MODEL COLORIZATION
         // =====================================================
         
-        const pedestalMaterial = new THREE.MeshStandardMaterial({ 
-            color: 0xf0f0f0,
-            roughness: 0.3
+        // Create clipping plane for Y-axis cropping (will be populated after model loads)
+        let modelClippingPlane = null;
+        
+        const wallTexture = textureLoader.load('./building/wall.jpg');
+
+        const wallpaperMaterial = new THREE.MeshBasicMaterial({
+            map: wallTexture,
+            side: THREE.DoubleSide,
+            clippingPlanes: []
         });
 
-        function createPedestal(x, z) {
-            const group = new THREE.Group();
-            
-            // Base
-            const baseGeometry = new THREE.BoxGeometry(2, 3, 2);
-            const base = new THREE.Mesh(baseGeometry, pedestalMaterial);
-            base.position.y = 1.5;
-            base.castShadow = true;
-            base.receiveShadow = true;
-            group.add(base);
-            
-            group.position.set(x, 0, z);
-            return group;
+        const brickTexture = textureLoader.load('./building/brick.jpg');
+        brickTexture.wrapS = THREE.RepeatWrapping;
+        brickTexture.wrapT = THREE.RepeatWrapping;
+        brickTexture.repeat.set(4, 2);
+
+        const brickMaterial = new THREE.MeshStandardMaterial({
+            map: brickTexture,
+            roughness: 0.9,
+            metalness: 0.0,
+            vertexColors: false,
+            clippingPlanes: []
+        });
+        
+        const whiteMaterial = new THREE.MeshBasicMaterial({
+            color: 0xf0f0f0,
+            side: THREE.DoubleSide,
+            clippingPlanes: []
+        });
+        
+        const greenMaterial = new THREE.MeshStandardMaterial({
+            color: 0x00ff00,
+            roughness: 0.5,
+            metalness: 0.1,
+            emissive: 0x003300,
+            clippingPlanes: []
+        });
+        
+        const yellowMaterial = new THREE.MeshStandardMaterial({
+            color: 0xffff00,
+            roughness: 0.6,
+            metalness: 0.1,
+            emissive: 0x333300,
+            clippingPlanes: []
+        });
+        
+        function addWallPlanes(child, mat) {
+            child.updateWorldMatrix(true, false);
+
+            const bbox = new THREE.Box3().setFromObject(child);
+            const size = bbox.getSize(new THREE.Vector3());
+            const center = bbox.getCenter(new THREE.Vector3());
+
+            const minAxis = size.x < size.z ? 'x' : 'z';
+            const planeW = minAxis === 'x' ? size.z : size.x;
+            const planeH = size.y;
+
+            [-1, 1].forEach((side) => {
+                const planeGeom = new THREE.PlaneGeometry(planeW, planeH);
+                // Clone material and apply clipping plane if it exists
+                const planeMat = mat.clone();
+                if (modelClippingPlane) {
+                    planeMat.clippingPlanes = [modelClippingPlane];
+                }
+                const planeMesh = new THREE.Mesh(planeGeom, planeMat);
+                planeMesh.position.copy(center);
+
+                if (minAxis === 'x') {
+                    planeMesh.rotation.y = side === 1 ? Math.PI / 2 : -Math.PI / 2;
+                    planeMesh.position.x += side * ((size.x / 2) + 0.05);
+                } else {
+                    planeMesh.rotation.y = side === -1 ? Math.PI : 0;
+                    planeMesh.position.z += side * ((size.z / 2) + 0.05);
+                }
+
+                scene.add(planeMesh);
+            });
         }
 
-        // Create pedestals
-        const pedestal1 = createPedestal(-28, -5);
-        const pedestal2 = createPedestal(-8, -8);
-        const pedestal3 = createPedestal(15, -5);
-        
-        scene.add(pedestal1);
-        scene.add(pedestal2);
-        scene.add(pedestal3);
+        function replaceDoorWithModel(model) {
+            if (!frontDoorModel) {
+                console.warn('Front door model not loaded yet');
+                return;
+            }
 
-        // Load rose sculptures on pedestals
-        const rosePaths = ['roses/rose1.glb', 'roses/rose2.glb', 'roses/rose3.glb'];
-        const pedestalPositions = [
-            { group: pedestal1, x: -28, z: -5 },
-            { group: pedestal2, x: -8, z: -8 },
-            { group: pedestal3, x: 15, z: -5 }
-        ];
-        
-        const loadedRoses = []; // Track loaded roses for animation
-
-        rosePaths.forEach((path, index) => {
-            gltfLoader.load(path, (gltf) => {
-                const rose = gltf.scene;
-                rose.scale.set(1.5, 1.5, 1.5);
-                rose.position.y = 3.2; // On top of pedestal base
-                
-                // Enable shadows
-                rose.traverse((child) => {
-                    if (child.isMesh) {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                    }
-                });
-                
-                // Store rose for rotation in animation loop
-                loadedRoses.push(rose);
-                
-                pedestalPositions[index].group.add(rose);
-                
-                // Add spotlight for this sculpture (lit from above)
-                const sculptureLight = new THREE.SpotLight(0xffffff, 2.5);
-                sculptureLight.position.set(
-                    pedestalPositions[index].x,
-                    11,
-                    pedestalPositions[index].z
-                );
-                sculptureLight.angle = Math.PI / 8;
-                sculptureLight.penumbra = 0.4;
-                sculptureLight.distance = 20;
-                sculptureLight.castShadow = false;
-                sculptureLight.target.position.set(
-                    pedestalPositions[index].x,
-                    3.5,
-                    pedestalPositions[index].z
-                );
-                scene.add(sculptureLight);
-                scene.add(sculptureLight.target);
-            }, undefined, (error) => {
-                console.error('Error loading rose:', path, error);
+            // Clone and add the front door model to the scene
+            const clonedDoor = frontDoorModel.clone();
+            clonedDoor.position.set(10, 10, 39);
+            clonedDoor.scale.set(20, 20, 20);
+            clonedDoor.rotation.y = 180 * (Math.PI / 180); // Rotate 180 degrees to face the correct direction
+            
+            // Brighten door materials while preserving textures (no clipping)
+            clonedDoor.traverse((child) => {
+                if (child.isMesh && child.material) {
+                    const mats = Array.isArray(child.material) ? child.material : [child.material];
+                    mats.forEach((m, idx) => {
+                        if (m) {
+                            // Create MeshBasicMaterial preserving the texture map if it exists
+                            const basicMat = new THREE.MeshBasicMaterial({
+                                map: m.map || null,
+                                color: m.color || 0xffffff,
+                                side: THREE.DoubleSide
+                            });
+                            if (Array.isArray(child.material)) {
+                                child.material[idx] = basicMat;
+                            } else {
+                                child.material = basicMat;
+                            }
+                        }
+                    });
+                }
             });
-        });
+            
+            scene.add(clonedDoor);
+            
+            console.log('Added front door model to scene');
+        }
+
+        function replaceWindowsWithModel(model) {
+            if (!windowModel) {
+                console.warn('Window model not loaded yet');
+                return;
+            }
+
+            model.traverse((child) => {
+                if (child.isMesh) {
+                    const name = child.name.toLowerCase();
+                    if (name.includes('window') || name.includes('glass')) {
+                        // Get the window mesh's world transform
+                        child.updateWorldMatrix(true, false);
+                        const bbox = new THREE.Box3().setFromObject(child);
+                        const size = bbox.getSize(new THREE.Vector3());
+                        const center = bbox.getCenter(new THREE.Vector3());
+
+                        // Determine which axis is the thin/normal axis
+                        const minAxis = size.x < size.z ? 'x' : 'z';
+                        const offset = 0.5;
+
+                        // Add window models on both sides (inside and outside)
+                        [-1, 1].forEach((side) => {
+                            // Clone window without clipping planes
+                            const clonedWindow = windowModel.clone();
+                            clonedWindow.applyMatrix4(child.matrixWorld);
+                            clonedWindow.scale.multiplyScalar(0.04); // Adjust scale to fit the window size
+                            clonedWindow.rotation.y = 180 * (Math.PI / 180); // Rotate 180 degrees to face the correct direction    
+                            // Offset the window slightly in the normal direction
+                            if (minAxis === 'x') {
+                                clonedWindow.position.x += side * offset;
+                            } else {
+                                clonedWindow.position.z += side * offset;
+                            }
+                            
+                            // Remove clipping planes from all window materials
+                            clonedWindow.traverse((childWindow) => {
+                                if (childWindow.isMesh && childWindow.material) {
+                                    const mats = Array.isArray(childWindow.material) ? childWindow.material : [childWindow.material];
+                                    mats.forEach(mat => {
+                                        if (mat) {
+                                            mat.clippingPlanes = null;
+                                        }
+                                    });
+                                }
+                            });
+
+                            scene.add(clonedWindow);
+                        });
+                        
+                        console.log('Added window models to:', child.name);
+                    }
+                }
+            });
+        }
+
+        function colorizeModel(model) {
+            model.traverse((child) => {
+                if (child.isMesh) {
+                    const name = child.name.toLowerCase();
+
+                    if (name.includes('door')) {
+                        child.material = yellowMaterial;
+                    } else if (name.includes('window') || name.includes('glass')) {
+                        child.material = greenMaterial;
+                    } else {
+                        child.material = whiteMaterial;
+                        const mat = child.name === 'Wall1' ? brickMaterial : wallpaperMaterial;
+                        addWallPlanes(child, mat);
+                    }
+                }
+            });
+        }
+
+        // =====================================================
+        // WALL VISUALIZATION FOR DEBUGGING
+        // =====================================================
+        
+        function visualizeWalls(model) {
+            wallVisuals.clear();
+            
+            model.traverse((child) => {
+                if (child.isMesh) {
+                    const bbox = new THREE.Box3().setFromObject(child);
+                    const size = bbox.getSize(new THREE.Vector3());
+                    const center = bbox.getCenter(new THREE.Vector3());
+                    
+                    // Detect walls - tall structures
+                    if (size.y > 5 && (size.x > 1 || size.z > 1)) {
+                        // Draw red wireframe box around wall
+                        const wireframeGeom = new THREE.BoxGeometry(size.x, size.y, size.z);
+                        const wireframeMat = new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 2 });
+                        const edges = new THREE.EdgesGeometry(wireframeGeom);
+                        const wireframe = new THREE.LineSegments(edges, wireframeMat);
+                        
+                        wireframe.position.copy(center);
+                        wallVisuals.add(wireframe);
+                        
+                        console.log('Visualizing wall:', child.name, 'Size:', size, 'Center:', center);
+                    }
+                }
+            });
+        }
+
+        // =====================================================
+        // DEBUG MODE - Labels for walls, doors, windows
+        // =====================================================
+        
+        let debugLabelsGroup = new THREE.Group();
+        scene.add(debugLabelsGroup);
+        let debugMode = false;
+        
+        function createTextTexture(text) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            return texture;
+        }
+        
+        function createLabel(position, text) {
+            const texture = createTextTexture(text);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.position.copy(position);
+            sprite.scale.set(10, 2.5, 1);
+            return sprite;
+        }
+        
+        function updateDebugLabels(model) {
+            debugLabelsGroup.clear();
+            if (!debugMode) return;
+            
+            model.traverse((child) => {
+                if (child.isMesh) {
+                    const name = child.name.toLowerCase();
+                    const bbox = new THREE.Box3().setFromObject(child);
+                    const center = bbox.getCenter(new THREE.Vector3());
+                    center.y += 33; // Raise labels above the objects
+                    
+                    if (name.includes('door')) {
+                        const label = createLabel(center, 'Door: ' + child.name);
+                        debugLabelsGroup.add(label);
+                    } else if (name.includes('window') || name.includes('glass')) {
+                        const label = createLabel(center, 'Window: ' + child.name);
+                        debugLabelsGroup.add(label);
+                    } else if (name.includes('wall') || name.includes('panel')) {
+                        const label = createLabel(center, 'Wall: ' + child.name);
+                        debugLabelsGroup.add(label);
+                    }
+                }
+            });
+        }
 
         // =====================================================
         // COLLISION DETECTION
         // =====================================================
         
-        const collisionRadius = 1; // Player collision radius (1 foot)
-        
-        // Define collision boxes based on walls and obstacles
-        const collisionBoxes = [
-            // Left gallery walls
-            { x: -28, z: -32, w: 20.5, d: 0.5 }, // Back wall
-            { x: -38, z: -8, w: 0.5, d: 32 }, // Left wall
-            { x: -22, z: 8.5, w: 16, d: 0.5 }, // Front partial wall
-            
-            // Center corridor back wall
-            { x: -8, z: -18.5, w: 21, d: 0.5 },
-            
-            // Right section walls
-            { x: 28.5, z: 0, w: 0.5, d: 30 }, // East wall
-            { x: 15, z: -18.5, w: 26, d: 0.5 }, // North wall
-            
-            // Interior dividing walls
-            { x: 8, z: -12, w: 0.5, d: 12 },
-            { x: 18, z: 5, w: 0.5, d: 10 },
-            
-            // Front walls
-            { x: -25, z: 18.5, w: 25, d: 0.5 },
-            { x: 15, z: 18.5, w: 25, d: 0.5 },
-            
-            // Pillars (with radius)
-            { x: -18, z: 0, w: 1.5, d: 1.5, isPillar: true },
-            { x: -18, z: -10, w: 1.5, d: 1.5, isPillar: true },
-            
-            // Pedestals (with radius)
-            { x: -28, z: -5, w: 2.5, d: 2.5, isPedestal: true },
-            { x: -8, z: -8, w: 2.5, d: 2.5, isPedestal: true },
-            { x: 15, z: -5, w: 2.5, d: 2.5, isPedestal: true },
-        ];
-        
         function checkCollision(x, z) {
-            for (let box of collisionBoxes) {
-                const dx = Math.abs(x - box.x);
-                const dz = Math.abs(z - box.z);
-                const closestX = Math.max(0, dx - box.w / 2 - collisionRadius);
-                const closestZ = Math.max(0, dz - box.d / 2 - collisionRadius);
+            // Player collision radius (for proximity checking)
+            const playerRadius = 1.5;
+            
+            // Check ground bounds
+            const groundMinX = -1 - 87 / 2;  // -44.5
+            const groundMaxX = -1 + 87 / 2;  // 42.5
+            const groundMinZ = -45 - 185 / 2; // -137.5
+            const groundMaxZ = -45 + 185 / 2; // 47.5
+            
+            // Return true if outside ground bounds (collision detected)
+            if (x < groundMinX || x > groundMaxX || z < groundMinZ || z > groundMaxZ) {
+                return true;
+            }
+            
+            // Check collision with walls
+            for (let wall of wallColliders) {
+                // Expand wall box by player radius for collision detection
+                const expandedMin = new THREE.Vector3(
+                    wall.min.x - playerRadius,
+                    wall.min.y,
+                    wall.min.z - playerRadius
+                );
+                const expandedMax = new THREE.Vector3(
+                    wall.max.x + playerRadius,
+                    wall.max.y,
+                    wall.max.z + playerRadius
+                );
                 
-                if (closestX ** 2 + closestZ ** 2 < 0.01) {
+                // Check if camera position is inside expanded wall box
+                if (x >= expandedMin.x && x <= expandedMax.x &&
+                    z >= expandedMin.z && z <= expandedMax.z) {
                     return true; // Collision detected
                 }
             }
+            
             return false; // No collision
         }
 
@@ -709,14 +731,15 @@
         // CUSTOM POINTER LOCK CONTROLS
         // =====================================================
         
-        let isLocked = false;
         let pitch = 0;
         let yaw = 0;
         
         const pointerSpeed = 0.003;
         
         document.addEventListener('click', () => {
-            document.body.requestPointerLock();
+            if (currentMode === 'game') {
+                document.body.requestPointerLock();
+            }
         });
 
         document.addEventListener('pointerlockchange', () => {
@@ -729,21 +752,137 @@
         });
 
         document.addEventListener('mousemove', (event) => {
-            if (!isLocked) return;
+            if (currentMode === 'game') {
+                if (!isLocked) return;
+                
+                yaw -= event.movementX * pointerSpeed;
+                pitch -= event.movementY * pointerSpeed;
+                
+                // Clamp pitch to prevent flipping
+                const PI_2 = Math.PI / 2;
+                pitch = Math.max(-PI_2, Math.min(PI_2, pitch));
+                
+                // Apply rotation using Euler angles
+                const euler = new THREE.Euler(pitch, yaw, 0, 'YXZ');
+                camera.quaternion.setFromEuler(euler);
+                
+                // Mark scene as needing render
+                needsRender = true;
+            } else {
+                // Explore mode: rotate by default, shift+drag to pan
+                if (event.buttons === 1) {
+                    const deltaMove = new THREE.Vector2(
+                        event.clientX - lastExploreMousePos.x,
+                        event.clientY - lastExploreMousePos.y
+                    );
+                    
+                    if (event.shiftKey) {
+                        // Shift + drag - pan
+                        exploreCameraPan.x -= deltaMove.x * 0.02;
+                        exploreCameraPan.y += deltaMove.y * 0.02;
+                    } else {
+                        // Default drag - rotate around object
+                        exploreRotation.x += deltaMove.y * 0.005;
+                        exploreRotation.y += deltaMove.x * 0.005;
+                        // Restrict to top hemisphere (0 to ~90 degrees)
+                        exploreRotation.x = Math.max(0, Math.min(1.4, exploreRotation.x));
+                    }
+                    needsRender = true;
+                }
+                lastExploreMousePos.set(event.clientX, event.clientY);
+            }
+        });
+        
+        document.addEventListener('wheel', (event) => {
+            if (currentMode === 'explore') {
+                event.preventDefault();
+                const zoomSpeed = 20;
+                exploreCameraDistance += event.deltaY * 0.01 * zoomSpeed;
+                exploreCameraDistance = Math.max(5, Math.min(200, exploreCameraDistance));
+                needsRender = true;
+            }
+        }, { passive: false });
+        
+        // Touch support for explore mode
+        let lastTouchDistance = 0;
+        let lastTouchPos = new THREE.Vector2(0, 0);
+        
+        document.addEventListener('touchmove', (event) => {
+            if (currentMode !== 'explore') return;
+            event.preventDefault();
             
-            yaw -= event.movementX * pointerSpeed;
-            pitch -= event.movementY * pointerSpeed;
+            if (event.touches.length === 2) {
+                // Two-finger touch - rotate and pinch to zoom
+                const touch1 = event.touches[0];
+                const touch2 = event.touches[1];
+                const midX = (touch1.clientX + touch2.clientX) / 2;
+                const midY = (touch1.clientY + touch2.clientY) / 2;
+                
+                // Calculate distance for pinch zoom
+                const currentDistance = Math.hypot(
+                    touch2.clientX - touch1.clientX,
+                    touch2.clientY - touch1.clientY
+                );
+                
+                if (lastTouchDistance > 0) {
+                    const distanceDelta = lastTouchDistance - currentDistance;
+                    exploreCameraDistance += distanceDelta * 0.1;
+                    exploreCameraDistance = Math.max(5, Math.min(200, exploreCameraDistance));
+                }
+                lastTouchDistance = currentDistance;
+                
+                // Rotate based on movement
+                const deltaMove = new THREE.Vector2(
+                    midX - lastTouchPos.x,
+                    midY - lastTouchPos.y
+                );
+                
+                exploreRotation.x += deltaMove.y * 0.005;
+                exploreRotation.y += deltaMove.x * 0.005;
+                // Restrict to top hemisphere (0 to ~90 degrees)
+                exploreRotation.x = Math.max(0, Math.min(1.4, exploreRotation.x));
+                lastTouchPos.set(midX, midY);
+                needsRender = true;
+            } else if (event.touches.length === 1) {
+                // Single finger - pan with shift-like behavior
+                const touch = event.touches[0];
+                const deltaMove = new THREE.Vector2(
+                    touch.clientX - lastTouchPos.x,
+                    touch.clientY - lastTouchPos.y
+                );
+                
+                exploreCameraPan.x -= deltaMove.x * 0.02;
+                exploreCameraPan.y += deltaMove.y * 0.02;
+                lastTouchPos.set(touch.clientX, touch.clientY);
+                needsRender = true;
+            }
+        }, { passive: false });
+        
+        document.addEventListener('touchstart', (event) => {
+            if (currentMode !== 'explore') return;
             
-            // Clamp pitch to prevent flipping
-            const PI_2 = Math.PI / 2;
-            pitch = Math.max(-PI_2, Math.min(PI_2, pitch));
-            
-            // Apply rotation using Euler angles
-            const euler = new THREE.Euler(pitch, yaw, 0, 'YXZ');
-            camera.quaternion.setFromEuler(euler);
-            
-            // Mark scene as needing render
-            hasMovement = true;
+            if (event.touches.length === 2) {
+                // Calculate initial distance for pinch zoom
+                const touch1 = event.touches[0];
+                const touch2 = event.touches[1];
+                lastTouchDistance = Math.hypot(
+                    touch2.clientX - touch1.clientX,
+                    touch2.clientY - touch1.clientY
+                );
+                lastTouchPos.set(
+                    (touch1.clientX + touch2.clientX) / 2,
+                    (touch1.clientY + touch2.clientY) / 2
+                );
+            } else if (event.touches.length === 1) {
+                const touch = event.touches[0];
+                lastTouchPos.set(touch.clientX, touch.clientY);
+            }
+        });
+        
+        document.addEventListener('touchend', (event) => {
+            if (event.touches.length < 2) {
+                lastTouchDistance = 0;
+            }
         });
 
         // Movement
@@ -758,44 +897,53 @@
         };
 
         document.addEventListener('keydown', (event) => {
-            switch (event.code) {
-                case 'ArrowUp':
-                case 'KeyW':
-                    moveState.forward = true;
-                    break;
-                case 'ArrowDown':
-                case 'KeyS':
-                    moveState.backward = true;
-                    break;
-                case 'ArrowLeft':
-                case 'KeyA':
-                    moveState.left = true;
-                    break;
-                case 'ArrowRight':
-                case 'KeyD':
-                    moveState.right = true;
-                    break;
+            if (currentMode === 'game') {
+                switch (event.code) {
+                    case 'ArrowUp':
+                    case 'KeyW':
+                        moveState.forward = true;
+                        break;
+                    case 'ArrowDown':
+                    case 'KeyS':
+                        moveState.backward = true;
+                        break;
+                    case 'ArrowLeft':
+                    case 'KeyA':
+                        moveState.left = true;
+                        break;
+                    case 'ArrowRight':
+                    case 'KeyD':
+                        moveState.right = true;
+                        break;
+                }
+            }
+            if (event.code === 'Escape') {
+                if (document.pointerLockElement) {
+                    document.exitPointerLock();
+                }
             }
         });
 
         document.addEventListener('keyup', (event) => {
-            switch (event.code) {
-                case 'ArrowUp':
-                case 'KeyW':
-                    moveState.forward = false;
-                    break;
-                case 'ArrowDown':
-                case 'KeyS':
-                    moveState.backward = false;
-                    break;
-                case 'ArrowLeft':
-                case 'KeyA':
-                    moveState.left = false;
-                    break;
-                case 'ArrowRight':
-                case 'KeyD':
-                    moveState.right = false;
-                    break;
+            if (currentMode === 'game') {
+                switch (event.code) {
+                    case 'ArrowUp':
+                    case 'KeyW':
+                        moveState.forward = false;
+                        break;
+                    case 'ArrowDown':
+                    case 'KeyS':
+                        moveState.backward = false;
+                        break;
+                    case 'ArrowLeft':
+                    case 'KeyA':
+                        moveState.left = false;
+                        break;
+                    case 'ArrowRight':
+                    case 'KeyD':
+                        moveState.right = false;
+                        break;
+                }
             }
         });
 
@@ -804,45 +952,60 @@
         // =====================================================
         
         let prevTime = performance.now();
-        let needsRender = true; // Track if render is needed
-        let hasMovement = false; // Track current frame movement
 
         function updateCamera(delta) {
-            let moveStep = 0;
-            let turned = false;
-            
-            // Forward/backward movement in facing direction
-            if (moveState.forward) moveStep -= moveSpeed * delta * 60;
-            if (moveState.backward) moveStep += moveSpeed * delta * 60;
-            
-            if (moveStep !== 0) {
-                const nextX = camera.position.x + Math.sin(yaw) * moveStep;
-                const nextZ = camera.position.z + Math.cos(yaw) * moveStep;
+            if (currentMode === 'game') {
+                let moveStep = 0;
+                let turned = false;
                 
-                // Check collision before moving
-                if (!checkCollision(nextX, nextZ)) {
-                    camera.position.x = nextX;
-                    camera.position.z = nextZ;
+                // Forward/backward movement in facing direction
+                if (moveState.forward) moveStep -= moveSpeed * delta * 60;
+                if (moveState.backward) moveStep += moveSpeed * delta * 60;
+                
+                if (moveStep !== 0) {
+                    const nextX = camera.position.x + Math.sin(yaw) * moveStep;
+                    const nextZ = camera.position.z + Math.cos(yaw) * moveStep;
+                    
+                    // Check collision before moving
+                    if (!checkCollision(nextX, nextZ)) {
+                        camera.position.x = nextX;
+                        camera.position.z = nextZ;
+                        needsRender = true;
+                    }
                 }
-                hasMovement = true;
-            }
-            
-            // Turn left/right
-            if (moveState.left) {
-                yaw += turnSpeed * delta * 60;
-                turned = true;
-                hasMovement = true;
-            }
-            if (moveState.right) {
-                yaw -= turnSpeed * delta * 60;
-                turned = true;
-                hasMovement = true;
-            }
-            
-            // Update camera rotation if turned
-            if (turned || moveStep !== 0) {
-                const euler = new THREE.Euler(pitch, yaw, 0, 'YXZ');
-                camera.quaternion.setFromEuler(euler);
+                
+                // Turn left/right
+                if (moveState.left) {
+                    yaw += turnSpeed * delta * 60;
+                    turned = true;
+                    needsRender = true;
+                }
+                if (moveState.right) {
+                    yaw -= turnSpeed * delta * 60;
+                    turned = true;
+                    needsRender = true;
+                }
+                
+                // Update camera rotation if turned
+                if (turned || moveStep !== 0) {
+                    const euler = new THREE.Euler(pitch, yaw, 0, 'YXZ');
+                    camera.quaternion.setFromEuler(euler);
+                }
+                
+                // Keep camera at eye height
+                camera.position.y = 5;
+            } else {
+                // Explore mode: orbit camera around center
+                const centerX = exploreCameraPan.x;
+                const centerY = 5; // Look at around eye height
+                const centerZ = exploreCameraPan.y;
+                
+                const x = centerX + Math.sin(exploreRotation.y) * Math.cos(exploreRotation.x) * exploreCameraDistance;
+                const y = centerY + Math.sin(exploreRotation.x) * exploreCameraDistance;
+                const z = centerZ + Math.cos(exploreRotation.y) * Math.cos(exploreRotation.x) * exploreCameraDistance;
+                
+                camera.position.set(x, y, z);
+                camera.lookAt(centerX, centerY, centerZ);
             }
         }
 
@@ -851,30 +1014,21 @@
 
             const time = performance.now();
             const delta = (time - prevTime) / 1000;
-            
-            // Reset movement flag for this frame
-            hasMovement = false;
 
-            if (isLocked) {
+            if (currentMode === 'game') {
+                if (isLocked) {
+                    updateCamera(delta);
+                }
+            } else {
+                // Always update explore mode camera
                 updateCamera(delta);
-
-                // Keep camera at eye height
-                camera.position.y = 5;
+                needsRender = true; // Always render in explore mode
             }
 
-            // Rotate sculptures for visual interest
-            const sculpturesAnimating = loadedRoses.length > 0;
-            if (sculpturesAnimating) {
-                loadedRoses.forEach(rose => {
-                    rose.rotation.y += 0.01;
-                });
-                needsRender = true; // Sculptures are animating
-            }
-
-            // Render only if movement occurred or sculptures are animating
-            if (hasMovement || needsRender) {
+            // Render if needed
+            if (needsRender) {
                 renderer.render(scene, camera);
-                needsRender = false; // Reset after rendering
+                needsRender = false;
             }
 
             prevTime = time;
