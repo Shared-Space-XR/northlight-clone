@@ -242,6 +242,18 @@
         let modelScene = null;
         let windowModel = null;
         let frontDoorModel = null;
+        let tableModel = null;
+        let sofaModel = null;
+        let table2Model = null;
+        let sofa2Model = null;
+        let sqPedestalModel = null;
+        let recPedestalModel = null;
+        let m2PedestalModel = null;
+        let m1PedestalModel = null;
+        let mSeatModel = null;
+        let backdoorModel = null;
+        let b1SeatModel = null;
+        let b2SeatModel = null;
         const wallVisuals = new THREE.Group();
         scene.add(wallVisuals);
 
@@ -249,7 +261,22 @@
         gltfLoader.load('./building/window.glb', (gltf) => {
             windowModel = gltf.scene;
             windowModel.scale.set(12, 12, 12);
+            windowModel.rotation.y = Math.PI; // Rotate 180 degrees to face the correct direction
             windowModel.position.set(0, 0, -10);
+            // make reflective material for windows
+            windowModel.traverse((child) => {
+                if (child.isMesh) {
+                    const mats = Array.isArray(child.material) ? child.material : [child.material];
+                    mats.forEach(mat => {
+                        if (mat) {
+                            mat.envMapIntensity = 1.0;
+                            mat.metalness = 0.8;
+                            mat.roughness = 0.2;
+                            mat.color.set(0xffffff);
+                        }
+                    });
+                }
+            });
             console.log('Window model loaded');
         }, undefined, (error) => {
             console.error('Error loading window model:', error);
@@ -259,9 +286,119 @@
         gltfLoader.load('./building/frontdoor.glb', (gltf) => {
             frontDoorModel = gltf.scene;
             frontDoorModel.scale.set(10, 10, 10);
+            frontDoorModel.position.set(0, 0, 10);
             console.log('Front door model loaded');
         }, undefined, (error) => {
             console.error('Error loading front door model:', error);
+        });
+
+        // Load table model
+        gltfLoader.load('./building/table.glb', (gltf) => {
+            tableModel = gltf.scene;
+            tableModel.scale.set(12, 12, 12);
+            console.log('Table model loaded');
+        }, undefined, (error) => {
+            console.error('Error loading table model:', error);
+        });
+
+        // Load sofa model
+        gltfLoader.load('./building/sofa.glb', (gltf) => {
+            sofaModel = gltf.scene;
+            sofaModel.scale.set(10, 10, 10);
+            console.log('Sofa model loaded');
+        }, undefined, (error) => {
+            console.error('Error loading sofa model:', error);
+        });
+
+        // Load table2 model
+        gltfLoader.load('./building/table2.glb', (gltf) => {
+            table2Model = gltf.scene;
+            table2Model.scale.set(10, 10, 10);
+            console.log('Table2 model loaded');
+        }, undefined, (error) => {
+            console.error('Error loading table2 model:', error);
+        });
+
+        // Load sofa2 model
+        gltfLoader.load('./building/sofa2.glb', (gltf) => {
+            sofa2Model = gltf.scene;
+            sofa2Model.scale.set(10, 10, 10);
+            console.log('Sofa2 model loaded');
+        }, undefined, (error) => {
+            console.error('Error loading sofa2 model:', error);
+        });
+
+        // Load sqPedestal model
+        gltfLoader.load('./building/sqPedestal.glb', (gltf) => {
+            sqPedestalModel = gltf.scene;
+            sqPedestalModel.scale.set(8, 8, 8);
+            console.log('sqPedestal model loaded');
+        }, undefined, (error) => {
+            console.error('Error loading sqPedestal model:', error);
+        });
+
+        // Load recPedestal model
+        gltfLoader.load('./building/recPedestal.glb', (gltf) => {
+            recPedestalModel = gltf.scene;
+            recPedestalModel.scale.set(8, 8, 8);
+            console.log('recPedestal model loaded');
+        }, undefined, (error) => {
+            console.error('Error loading recPedestal model:', error);
+        });
+
+        // Load m2Pedestal model
+        gltfLoader.load('./building/m2Pedestal.glb', (gltf) => {
+            m2PedestalModel = gltf.scene;
+            m2PedestalModel.scale.set(8, 8, 8);
+            console.log('m2Pedestal model loaded');
+        }, undefined, (error) => {
+            console.error('Error loading m2Pedestal model:', error);
+        });
+
+        // Load m1Pedestal model
+        gltfLoader.load('./building/m1Pedestal.glb', (gltf) => {
+            m1PedestalModel = gltf.scene;
+            m1PedestalModel.scale.set(8, 8, 8);
+            console.log('m1Pedestal model loaded');
+        }, undefined, (error) => {
+            console.error('Error loading m1Pedestal model:', error);
+        });
+
+        // Load mSeat model
+        gltfLoader.load('./building/mSeat.glb', (gltf) => {
+            mSeatModel = gltf.scene;
+            mSeatModel.scale.set(10, 10, 10);
+            console.log('mSeat model loaded');
+        }, undefined, (error) => {
+            console.error('Error loading mSeat model:', error);
+        });
+
+        // Load backdoor model
+        gltfLoader.load('./building/backdoor.glb', (gltf) => {
+            backdoorModel = gltf.scene;
+            backdoorModel.scale.set(10, 10, 10);
+            backdoorModel.position.set(0, 0, 10);
+            console.log('Backdoor model loaded');
+        }, undefined, (error) => {
+            console.error('Error loading backdoor model:', error);
+        });
+
+        // Load b1Seat model
+        gltfLoader.load('./building/b1Seat.glb', (gltf) => {
+            b1SeatModel = gltf.scene;
+            b1SeatModel.scale.set(10, 10, 10);
+            console.log('b1Seat model loaded');
+        }, undefined, (error) => {
+            console.error('Error loading b1Seat model:', error);
+        });
+
+        // Load b2Seat model
+        gltfLoader.load('./building/b2Seat.glb', (gltf) => {
+            b2SeatModel = gltf.scene;
+            b2SeatModel.scale.set(10, 10, 10);
+            console.log('b2Seat model loaded');
+        }, undefined, (error) => {
+            console.error('Error loading b2Seat model:', error);
         });
 
         gltfLoader.load('Northlight.glb', (gltf) => {
@@ -281,16 +418,7 @@
             // Create clipping plane to hide top 30% (plane normal points down to keep bottom)
             modelClippingPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), cropHeight);
             
-            // Create clipping planes for ground footprint (X and Z axes)
-            const groundClippingPlanes = [
-                new THREE.Plane(new THREE.Vector3(1, 0, 0), -modelBbox.min.x),   // Left boundary
-                new THREE.Plane(new THREE.Vector3(-1, 0, 0), modelBbox.max.x),   // Right boundary
-                new THREE.Plane(new THREE.Vector3(0, 0, 1), -modelBbox.min.z),   // Front boundary
-                new THREE.Plane(new THREE.Vector3(0, 0, -1), modelBbox.max.z)    // Back boundary
-            ];
-            
-            // Apply ground clipping planes
-            groundMaterial.clippingPlanes = groundClippingPlanes;
+
             
             // Apply clipping plane to all materials
             wallpaperMaterial.clippingPlanes = [modelClippingPlane];
@@ -344,10 +472,24 @@
             
             // Replace windows with window.glb model (with a small delay to ensure it's loaded)
             setTimeout(() => {
-                replaceWindowsWithModel(model);
-                replaceDoorWithModel(model);
+                console.log('Checking models - windowModel:', !!windowModel, 'frontDoorModel:', !!frontDoorModel, 'tableModel:', !!tableModel, 'sofaModel:', !!sofaModel, 'table2Model:', !!table2Model, 'sofa2Model:', !!sofa2Model, 'sqPedestalModel:', !!sqPedestalModel, 'recPedestalModel:', !!recPedestalModel, 'm2PedestalModel:', !!m2PedestalModel, 'm1PedestalModel:', !!m1PedestalModel, 'mSeatModel:', !!mSeatModel, 'backdoorModel:', !!backdoorModel, 'b1SeatModel:', !!b1SeatModel, 'b2SeatModel:', !!b2SeatModel);
+                if (windowModel) replaceWindowsWithModel(model);
+                if (frontDoorModel) replaceDoorWithModel(model);
+                if (backdoorModel) addBackdoorToScene();
+                if (tableModel) addTableToScene();
+                if (sofaModel) addSofaToScene();
+                if (table2Model) addTable2ToScene();
+                if (sofa2Model) addSofa2ToScene();
+                if (b1SeatModel) addB1SeatToScene();
+                if (b2SeatModel) addB2SeatToScene();
+                if (sqPedestalModel) addSqPedestalToScene();
+                if (recPedestalModel) addRecPedestalToScene();
+                if (m2PedestalModel) addM2PedestalToScene();
+                if (m1PedestalModel) addM1PedestalToScene();
+                if (mSeatModel) addMSeatToScene();
+                createDividerWithDoorFrame();
                 needsRender = true; // Trigger render after models are added
-            }, 100);
+            }, 500);
             
             // Update debug labels if needed
             updateDebugLabels(model);
@@ -359,18 +501,24 @@
         });
 
         // Exterior ground
-        const groundGeometry = new THREE.PlaneGeometry(87, 185);
+        const groundGeometry = new THREE.PlaneGeometry(84.8, 186);
         const floorTexture = textureLoader.load('./building/floor.jpg');
         const groundMaterial = new THREE.MeshStandardMaterial({ 
             map: floorTexture,
-            roughness: 0.9,
-            clippingPlanes: []
+            roughness: 0.5
         });
         const ground = new THREE.Mesh(groundGeometry, groundMaterial);
         ground.rotation.x = -Math.PI / 2;
-        ground.position.set(-1, 0, -45);
+        ground.position.set(-1, -1.8, -49.4);
         ground.receiveShadow = true;
         scene.add(ground);
+
+        // Add sky blue box
+        const boxGeometry = new THREE.BoxGeometry(34, 1, 15);
+        const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x87CEEB });
+        const box = new THREE.Mesh(boxGeometry, boxMaterial);
+        box.position.set(-28.3, -1, 40.5);
+        scene.add(box);
 
         // =====================================================
         // LIGHTING
@@ -406,50 +554,466 @@
         let modelClippingPlane = null;
         
         const wallTexture = textureLoader.load('./building/wall.jpg');
-
+        wallTexture.wrapS = THREE.RepeatWrapping;
+        wallTexture.wrapT = THREE.RepeatWrapping;
+        wallTexture.repeat.set(1, 1);
+        
         const wallpaperMaterial = new THREE.MeshBasicMaterial({
             map: wallTexture,
-            side: THREE.DoubleSide,
-            clippingPlanes: []
+            color: 0xffffff,
+            side: THREE.DoubleSide
         });
 
         const brickTexture = textureLoader.load('./building/brick.jpg');
         brickTexture.wrapS = THREE.RepeatWrapping;
         brickTexture.wrapT = THREE.RepeatWrapping;
-        brickTexture.repeat.set(4, 2);
+        brickTexture.repeat.set(2, 3);
 
         const brickMaterial = new THREE.MeshStandardMaterial({
             map: brickTexture,
             roughness: 0.9,
             metalness: 0.0,
-            vertexColors: false,
-            clippingPlanes: []
+            vertexColors: false
         });
         
         const whiteMaterial = new THREE.MeshBasicMaterial({
             color: 0xf0f0f0,
-            side: THREE.DoubleSide,
-            clippingPlanes: []
+            side: THREE.DoubleSide
+        });
+        
+        const skyBlueMaterial = new THREE.MeshBasicMaterial({
+            color: 0x87CEEB,
+            side: THREE.DoubleSide
         });
         
         const greenMaterial = new THREE.MeshStandardMaterial({
             color: 0x00ff00,
             roughness: 0.5,
             metalness: 0.1,
-            emissive: 0x003300,
-            clippingPlanes: []
+            emissive: 0x003300
         });
         
         const yellowMaterial = new THREE.MeshStandardMaterial({
             color: 0xffff00,
             roughness: 0.6,
             metalness: 0.1,
-            emissive: 0x333300,
-            clippingPlanes: []
+            emissive: 0x333300
+        });
+        
+        // Create procedural brick texture for Wall0
+        function createBrickTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            
+            const brickWidth = 45;
+            const brickHeight = 25;
+            const mortar = 1;
+            const brickColor = '#6B3410';  // Dark brick red
+            const mortarColor = '#D3B7A0';  // Natural mortar tan
+            
+            // Fill background with mortar color
+            ctx.fillStyle = mortarColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw bricks
+            for (let y = 0; y < canvas.height; y += brickHeight + mortar) {
+                const offset = ((y / (brickHeight + mortar)) % 2) * (brickWidth / 2);
+                for (let x = -offset; x < canvas.width; x += brickWidth + mortar) {
+                    ctx.fillStyle = brickColor;
+                    ctx.fillRect(x, y, brickWidth, brickHeight);
+                    
+                    // Add brick texture variation - darker shadows
+                    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                    ctx.fillRect(x, y, brickWidth, 2);
+                    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                    ctx.fillRect(x, y, 2, brickHeight);
+                    
+                    // Add highlight on bottom and right
+                    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                    ctx.fillRect(x, y + brickHeight - 2, brickWidth, 2);
+                    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                    ctx.fillRect(x + brickWidth - 2, y, 2, brickHeight);
+                }
+            }
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.magFilter = THREE.LinearFilter;
+            texture.minFilter = THREE.LinearMipmapLinearFilter;
+            return texture;
+        }
+        
+        const wall1Material = new THREE.MeshBasicMaterial({
+            map: brickTexture,
+            color: 0xffffff,
+            side: THREE.DoubleSide
+        });
+        wall1Material.needsUpdate = true;
+        
+        // Create procedural rough clay texture for pedestals (TSL-inspired)
+        function createRoughClayTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            
+            // Base clay color (warm terracotta)
+            ctx.fillStyle = '#ccc0b0';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Settings
+            const scale = 2;
+            const bump = 0.5;
+            const curvature = 0.2;
+            
+            // Create stroke patterns for rough clay texture
+            for (let i = 0; i < 150; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const length = Math.random() * 40 * scale + 20 * scale;
+                const angle = Math.random() * Math.PI * 2;
+                
+                ctx.strokeStyle = `rgba(0, 0, 0, ${0.05 + Math.random() * 0.15})`;
+                ctx.lineWidth = Math.random() * 3 + 1;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                
+                // Create curved strokes
+                const controlX = x + Math.cos(angle) * length * 0.5;
+                const controlY = y + Math.sin(angle) * length * 0.5;
+                const endX = x + Math.cos(angle) * length;
+                const endY = y + Math.sin(angle) * length;
+                
+                ctx.quadraticCurveTo(controlX + (Math.random() - 0.5) * curvature * length, 
+                                     controlY + (Math.random() - 0.5) * curvature * length,
+                                     endX, endY);
+                ctx.stroke();
+            }
+            
+            // Add bumps and texture areas
+            for (let i = 0; i < 100; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 15 * bump + 5;
+                
+                ctx.fillStyle = `rgba(${Math.random() * 40 + 100}, ${Math.random() * 30 + 80}, ${Math.random() * 30 + 50}, ${0.1 + Math.random() * 0.2})`;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Add clay grain/speckle pattern
+            for (let i = 0; i < 3000; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                ctx.fillStyle = `rgba(${Math.random() * 60 + 100}, ${Math.random() * 50 + 80}, ${Math.random() * 40 + 60}, ${Math.random() * 0.06})`;
+                ctx.fillRect(x, y, 1, 1);
+            }
+            
+            // Add surface irregularities
+            for (let i = 0; i < 50; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const w = Math.random() * 30 + 10;
+                const h = Math.random() * 20 + 5;
+                
+                ctx.fillStyle = `rgba(${Math.random() * 30 + 110}, ${Math.random() * 30 + 90}, ${Math.random() * 30 + 70}, ${0.08 + Math.random() * 0.1})`;
+                ctx.fillRect(x, y, w, h);
+            }
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.magFilter = THREE.LinearFilter;
+            texture.minFilter = THREE.LinearMipmapLinearFilter;
+            return texture;
+        }
+        
+        const roughClayTexture = createRoughClayTexture();
+        
+        // Create procedural stars texture
+        function createStarsTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            
+            // Dark background (00001d)
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Star color (ffe8de - warm white/beige)
+            const starColor = '#dedede';
+            
+            // Settings
+            const scale = 2;
+            const density = .1;
+            const variation = 0;
+            
+            // Generate stars
+            const numStars = Math.floor(canvas.width * canvas.height * density / 100);
+            for (let i = 0; i < numStars; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * scale * 0.5 + 0.5;
+                const opacity = 0.3 + Math.random() * (1 - variation * 0.3);
+                
+                ctx.fillStyle = starColor;
+                ctx.globalAlpha = opacity;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
+            
+            // Add some glow to stars
+            for (let i = 0; i < numStars * 0.3; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * scale * 1.5 + 1;
+                
+                const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
+                gradient.addColorStop(1, 'rgba(0, 0, 29, 0)');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.magFilter = THREE.LinearFilter;
+            texture.minFilter = THREE.LinearMipmapLinearFilter;
+            return texture;
+        }
+        
+        const starsTexture = createStarsTexture();
+        const tableMaterial = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            map: starsTexture,
+            side: THREE.DoubleSide
+        });
+        
+        // Create procedural roman paving texture
+        function createRomanPavingTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            
+            // Mortar color (light grey)
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Stone colors palette
+            const stoneColors = ['#9b8b77', '#a89784', '#8b7b6b', '#b5a595', '#a08070'];
+            
+            // Settings
+            const scale = 2;
+            const depth = 0.5;
+            
+            // Draw roman paving stones - rectangular pattern
+            const stoneWidth = 80 / scale;
+            const stoneHeight = 50 / scale;
+            const mortarWidth = 2;
+            
+            for (let y = 0; y < canvas.height; y += stoneHeight + mortarWidth) {
+                // Offset every other row for brick-like pattern
+                const offset = ((y / (stoneHeight + mortarWidth)) % 2) * (stoneWidth / 2);
+                for (let x = -offset; x < canvas.width; x += stoneWidth + mortarWidth) {
+                    // Random stone color
+                    const color = stoneColors[Math.floor(Math.random() * stoneColors.length)];
+                    ctx.fillStyle = color;
+                    ctx.fillRect(x, y, stoneWidth, stoneHeight);
+                    
+                    // Add shadow/depth on top and left
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+                    ctx.fillRect(x, y, stoneWidth, 2);
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                    ctx.fillRect(x, y, 2, stoneHeight);
+                    
+                    // Add highlight on bottom and right
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                    ctx.fillRect(x, y + stoneHeight - 2, stoneWidth, 2);
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+                    ctx.fillRect(x + stoneWidth - 2, y, 2, stoneHeight);
+                    
+                    // Add subtle variation/texture within stone
+                    for (let i = 0; i < 3; i++) {
+                        const spotX = x + Math.random() * stoneWidth;
+                        const spotY = y + Math.random() * stoneHeight;
+                        ctx.fillStyle = `rgba(0, 0, 0, ${0.05 * Math.random()})`;
+                        ctx.fillRect(spotX, spotY, 3, 3);
+                    }
+                }
+            }
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.magFilter = THREE.LinearFilter;
+            texture.minFilter = THREE.LinearMipmapLinearFilter;
+            return texture;
+        }
+        
+        const romanPavingTexture = createRomanPavingTexture();
+        const table2Material = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            map: romanPavingTexture,
+            side: THREE.DoubleSide
+        });
+        
+        // Create procedural satin texture
+        function createSatinTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            
+            // Dark background (000014)
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Main satin color (2937ff - deep blue)
+            const satinColor = '#000000';
+            
+            // Settings
+            const scale = 200;
+            
+            // Create satin sheen effect with diagonal lines and gradients
+            for (let y = 0; y < canvas.height; y += 3 * scale) {
+                // Alternating light and dark lines for satin sheen
+                if ((y / (3 * scale)) % 2 === 0) {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+                } else {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                }
+                ctx.fillRect(0, y, canvas.width, 2 * scale);
+            }
+            
+            // Add fabric texture with small random variations
+            for (let i = 0; i < 2000; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const brightness = Math.random() * 0.3;
+                ctx.fillStyle = `rgba(0, 0, 0, ${(0.2 + brightness)})`;
+                ctx.fillRect(x, y, Math.random() * 2 + 1, 1);
+            }
+            
+            // Add subtle wave pattern for satin sheen
+            for (let x = 0; x < canvas.width; x += 40 * scale) {
+                const gradient = ctx.createLinearGradient(x, 0, x + 40 * scale, 0);
+                gradient.addColorStop(0, 'rgba(100, 150, 255, 0)');
+                gradient.addColorStop(0.5, 'rgba(100, 150, 255, 0.3)');
+                gradient.addColorStop(1, 'rgba(100, 150, 255, 0)');
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(x, 0, 40 * scale, canvas.height);
+            }
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.magFilter = THREE.LinearFilter;
+            texture.minFilter = THREE.LinearMipmapLinearFilter;
+            return texture;
+        }
+        
+        const satinTexture = createSatinTexture();
+        const sofaMaterial = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            map: satinTexture,
+            side: THREE.DoubleSide
+        });
+        
+        // Create procedural crumpled fabric texture
+        function createCrumpledFabricTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            
+            // Base colors from the texture
+            const mainColor = '#6edeff';      // Cyan main color
+            const subColor = '#0d0dde';        // Dark blue sub color
+            const bgColor = '#000700';         // Very dark green background
+            
+            // Fill with background
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Create crumpled fabric effect using noise-like pattern
+            const scale = 2;
+            
+            // Create wrinkle patterns
+            for (let i = 0; i < 100; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const width = Math.random() * 60 * scale + 20 * scale;
+                const height = Math.random() * 40 * scale + 15 * scale;
+                const angle = Math.random() * Math.PI;
+                
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(angle);
+                
+                // Draw wrinkles with sub color
+                ctx.strokeStyle = subColor;
+                ctx.lineWidth = Math.random() * 2 + 0.5;
+                ctx.globalAlpha = Math.random() * 0.5 + 0.3;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, width, height, 0, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                ctx.restore();
+            }
+            
+            // Add main fabric color with crumpled effect
+            for (let i = 0; i < 50; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const radius = Math.random() * 40 * scale + 10 * scale;
+                
+                const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+                gradient.addColorStop(0, mainColor);
+                gradient.addColorStop(0.7, 'rgba(110, 222, 255, 0.5)');
+                gradient.addColorStop(1, bgColor);
+                
+                ctx.fillStyle = gradient;
+                ctx.globalAlpha = 0.6;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            // Add fabric texture grain
+            for (let i = 0; i < 2000; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height;
+                const brightness = Math.random();
+                ctx.globalAlpha = brightness * 0.3;
+                
+                if (brightness > 0.5) {
+                    ctx.fillStyle = mainColor;
+                } else {
+                    ctx.fillStyle = subColor;
+                }
+                
+                ctx.fillRect(x, y, Math.random() * 1 + 0.5, Math.random() * 1 + 0.5);
+            }
+            
+            ctx.globalAlpha = 1.0;
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.magFilter = THREE.LinearFilter;
+            texture.minFilter = THREE.LinearMipmapLinearFilter;
+            return texture;
+        }
+        
+        const pedestalMaterial = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            map: roughClayTexture,
+            side: THREE.DoubleSide
         });
         
         function addWallPlanes(child, mat) {
             child.updateWorldMatrix(true, false);
+            child.visible = false;  // Hide the actual wall
 
             const bbox = new THREE.Box3().setFromObject(child);
             const size = bbox.getSize(new THREE.Vector3());
@@ -459,27 +1023,49 @@
             const planeW = minAxis === 'x' ? size.z : size.x;
             const planeH = size.y;
 
-            [-1, 1].forEach((side) => {
-                const planeGeom = new THREE.PlaneGeometry(planeW, planeH);
-                // Clone material and apply clipping plane if it exists
-                const planeMat = mat.clone();
-                if (modelClippingPlane) {
-                    planeMat.clippingPlanes = [modelClippingPlane];
-                }
-                const planeMesh = new THREE.Mesh(planeGeom, planeMat);
-                planeMesh.position.copy(center);
+            // Only create one plane on the positive side
+            const side = 1;
+            const planeGeom = new THREE.PlaneGeometry(planeW, planeH);
+            // Clone material and apply clipping plane if it exists
+            const planeMat = mat.clone();
+            if (modelClippingPlane) {
+                planeMat.clippingPlanes = [...(planeMat.clippingPlanes || []), modelClippingPlane];
+            }
+            const planeMesh = new THREE.Mesh(planeGeom, planeMat);
+            planeMesh.position.copy(center);
 
-                if (minAxis === 'x') {
-                    planeMesh.rotation.y = side === 1 ? Math.PI / 2 : -Math.PI / 2;
-                    planeMesh.position.x += side * ((size.x / 2) + 0.05);
-                } else {
-                    planeMesh.rotation.y = side === -1 ? Math.PI : 0;
-                    planeMesh.position.z += side * ((size.z / 2) + 0.05);
-                }
+            if (minAxis === 'x') {
+                planeMesh.rotation.y = side === 1 ? Math.PI / 2 : -Math.PI / 2;
+                planeMesh.position.x += side * (size.x / 2);
+            } else {
+                planeMesh.rotation.y = side === -1 ? Math.PI : 0;
+                planeMesh.position.z += side * (size.z / 2);
+            }
 
-                scene.add(planeMesh);
-            });
+            if(child.name=="Wall11"){
+                planeMesh.position.x -= 1;
+                planeMesh.position.z += .3;
+            }
+            else if(child.name=="Wall2"){
+                planeMesh.position.z += .6;
+            }
+            else if(child.name=="Wall10"){
+                planeMesh.position.x -= .2;
+                planeMesh.position.z += .2;
+            }
+            else if(child.name=="Wall1"){
+                planeMesh.position.x -= .4;
+                planeMesh.scale.set(.98,1,1);
+            }
+            else if(child.name=="Wall0"){
+                planeMesh.position.x += .65;
+                planeMesh.scale.set(.99,1,1);
+
+            }
+            scene.add(planeMesh);
         }
+
+
 
         function replaceDoorWithModel(model) {
             if (!frontDoorModel) {
@@ -487,10 +1073,40 @@
                 return;
             }
 
+
+            const clonedDoorAlt = frontDoorModel.clone();
+            clonedDoorAlt.position.set(-4, 11, 43.5);
+            clonedDoorAlt.scale.set(21, 25, 2);
+           
+            // Brighten door materials while preserving textures (no clipping)
+            clonedDoorAlt.traverse((child) => {
+                if (child.isMesh && child.material) {
+                    const mats = Array.isArray(child.material) ? child.material : [child.material];
+                    mats.forEach((m, idx) => {
+                        if (m) {
+                            // Create MeshBasicMaterial preserving the texture map if it exists
+                            const basicMat = new THREE.MeshBasicMaterial({
+                                map: m.map || null,
+                                color: m.color || 0xffffff,
+                                side: THREE.DoubleSide
+                            });
+                            if (Array.isArray(child.material)) {
+                                child.material[idx] = basicMat;
+                            } else {
+                                child.material = basicMat;
+                            }
+                        }
+                    });
+                }
+            });
+
+            scene.add(clonedDoorAlt);
+
+
             // Clone and add the front door model to the scene
             const clonedDoor = frontDoorModel.clone();
-            clonedDoor.position.set(10, 10, 39);
-            clonedDoor.scale.set(20, 20, 20);
+            clonedDoor.position.set(-4, 11, 37);
+            clonedDoor.scale.set(21, 25, 25);
             clonedDoor.rotation.y = 180 * (Math.PI / 180); // Rotate 180 degrees to face the correct direction
             
             // Brighten door materials while preserving textures (no clipping)
@@ -520,6 +1136,398 @@
             console.log('Added front door model to scene');
         }
 
+        function addTableToScene() {
+            if (!tableModel) {
+                console.warn('Table model not loaded yet');
+                return;
+            }
+
+            // Clone and add the table model to the scene
+            const clonedTable = tableModel.clone();
+            clonedTable.position.set(-22, 3, 28);
+            clonedTable.scale.set(27, 27, 27);
+            
+            // Apply stars texture to table
+            clonedTable.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = tableMaterial;
+                }
+            });
+            
+            scene.add(clonedTable);
+            
+            console.log('Added table model to scene');
+        }
+
+        function addSofaToScene() {
+            if (!sofaModel) {
+                console.warn('Sofa model not loaded yet');
+                return;
+            }
+
+            // Clone and add the sofa model to the scene
+            const clonedSofa = sofaModel.clone();
+            clonedSofa.position.set(21, 4, 33);
+            clonedSofa.scale.set(12, 12, 10);
+            clonedSofa.rotation.y = 90 * (Math.PI / 180); // Rotate 90 degrees to fit the corner
+            
+            // Apply satin texture to sofa
+            clonedSofa.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = sofaMaterial;
+                }
+            });
+            
+            scene.add(clonedSofa);
+            
+            console.log('Added sofa model to scene');
+        }
+
+        function addTable2ToScene() {
+            if (!table2Model) {
+                console.warn('Table2 model not loaded yet');
+                return;
+            }
+
+            // Clone and add the table2 model to the scene
+            const clonedTable2 = table2Model.clone();
+            clonedTable2.position.set(26, 2, 33);
+            clonedTable2.scale.set(4, 4, 3.4);
+            
+            // Apply roman paving texture to table
+            clonedTable2.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = table2Material;
+                }
+            });
+            
+            scene.add(clonedTable2);
+
+            // Clone and add the table2 model to the scene
+            const clonedTable21 = table2Model.clone();
+            clonedTable21.position.set(31,2, 33);
+            clonedTable21.scale.set(4, 4, 3.4);
+            
+            // Apply roman paving texture to table
+            clonedTable21.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = table2Material;
+                }
+            });
+            
+            scene.add(clonedTable21);
+            
+            console.log('Added table2 model to scene');
+        }
+
+        function addSofa2ToScene() {
+            if (!sofa2Model) {
+                console.warn('Sofa2 model not loaded yet');
+                return;
+            }
+
+            // Clone and add the sofa2 model to the scene
+            const clonedSofa2 = sofa2Model.clone();
+            clonedSofa2.position.set(28, 3, 39);
+            clonedSofa2.scale.set(9, 9, 9);
+            clonedSofa2.rotation.y = Math.PI; // Rotate 180 degrees to fit the opposite corner
+            
+            // Apply satin texture to sofa
+            clonedSofa2.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = sofaMaterial;
+                }
+            });
+            
+            scene.add(clonedSofa2);
+            
+            console.log('Added sofa2 model to scene');
+        }
+
+        function addSqPedestalToScene() {
+            if (!sqPedestalModel) {
+                console.warn('sqPedestal model not loaded yet');
+                return;
+            }
+
+            // Clone and add the sqPedestal model to the scene
+            const clonedSqPedestal = sqPedestalModel.clone();
+            clonedSqPedestal.position.set(-21, 5, 10);
+            clonedSqPedestal.rotation.y = 90 * (Math.PI / 180); // Rotate 45 degrees for better angle
+            clonedSqPedestal.scale.set(8, 8, 8);
+            
+            // Apply marble texture and enable shadows
+            clonedSqPedestal.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = pedestalMaterial;
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+            
+            scene.add(clonedSqPedestal);
+            
+            console.log('Added sqPedestal model to scene');
+        }
+
+        function addRecPedestalToScene() {
+            if (!recPedestalModel) {
+                console.warn('recPedestal model not loaded yet');
+                return;
+            }
+
+            // Clone and add the recPedestal model to the scene
+            const clonedRecPedestal = recPedestalModel.clone();
+            clonedRecPedestal.position.set(29, 5, 25);
+            clonedRecPedestal.scale.set(7, 7, 7);
+            
+            // Apply marble texture and enable shadows
+            clonedRecPedestal.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = pedestalMaterial;
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+            
+            scene.add(clonedRecPedestal);
+            
+            console.log('Added recPedestal model to scene');
+        }
+
+        function addM2PedestalToScene() {
+            if (!m2PedestalModel) {
+                console.warn('m2Pedestal model not loaded yet');
+                return;
+            }
+
+            // Clone and add the m2Pedestal model to the scene
+            const clonedM2Pedestal = m2PedestalModel.clone();
+            clonedM2Pedestal.position.set(-15, 5, -80);
+            clonedM2Pedestal.scale.set(8, 8, 8);
+            
+            // Apply pedestal material and enable shadows
+            clonedM2Pedestal.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = pedestalMaterial;
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+            
+            scene.add(clonedM2Pedestal);
+            
+            console.log('Added m2Pedestal model to scene');
+        }
+
+
+
+        function addM1PedestalToScene() {
+            if (!m1PedestalModel) {
+                console.warn('m1Pedestal model not loaded yet');
+                return;
+            }
+
+            // Clone and add the m1Pedestal model to the scene
+            const clonedM1Pedestal = m1PedestalModel.clone();
+            clonedM1Pedestal.position.set(-5, 5, -56);
+            clonedM1Pedestal.rotation.y = -45 * (Math.PI / 180); // Rotate 45 degrees for better angle
+            clonedM1Pedestal.scale.set(8, 8, 8);
+            
+            // Apply pedestal material and enable shadows
+            clonedM1Pedestal.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = pedestalMaterial;
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+            
+            scene.add(clonedM1Pedestal);
+            
+            console.log('Added m1Pedestal model to scene');
+        }
+
+        function addMSeatToScene() {
+            if (!mSeatModel) {
+                console.warn('mSeat model not loaded yet');
+                return;
+            }
+
+            // Clone and add the mSeat model to the scene
+            const clonedMSeat = mSeatModel.clone();
+            clonedMSeat.position.set(15, 2, -41);
+            clonedMSeat.rotation.y = 45 * (Math.PI / 180); // Rotate 45 degrees for better angle
+            clonedMSeat.scale.set(10, 10, 10);
+            
+            // Apply satin texture to mSeat
+            clonedMSeat.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = sofaMaterial;
+                }
+            });
+            
+            scene.add(clonedMSeat);
+
+            const clonedMSeat1 = mSeatModel.clone();
+            clonedMSeat1.position.set(12, 2, -44);
+            clonedMSeat1.rotation.y = 225 * (Math.PI / 180); // Rotate 45 degrees for better angle
+            clonedMSeat1.scale.set(10, 10, 10);
+            
+            // Apply satin texture to mSeat
+            clonedMSeat1.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = sofaMaterial;
+                }
+            });
+            
+            scene.add(clonedMSeat1);
+            
+            console.log('Added mSeat model to scene');
+        }
+
+        function addBackdoorToScene() {
+            if (!backdoorModel) {
+                console.warn('Backdoor model not loaded yet');
+                return;
+            }
+
+            // Clone and add the backdoor model to the scene
+            const clonedBackdoor = backdoorModel.clone();
+            clonedBackdoor.position.set(30, 11, -142);
+            clonedBackdoor.scale.set(22, 25, 25);
+           // clonedBackdoor.rotation.y = 180 * (Math.PI / 180); // Rotate 180 degrees to face the correct direction
+            
+            // Apply material to backdoor
+            clonedBackdoor.traverse((child) => {
+                if (child.isMesh && child.material) {
+                    const mats = Array.isArray(child.material) ? child.material : [child.material];
+                    mats.forEach((m, idx) => {
+                        if (m) {
+                            const basicMat = new THREE.MeshBasicMaterial({
+                                map: m.map || null,
+                                color: m.color || 0xffffff,
+                                side: THREE.DoubleSide
+                            });
+                            if (Array.isArray(child.material)) {
+                                child.material[idx] = basicMat;
+                            } else {
+                                child.material = basicMat;
+                            }
+                        }
+                    });
+                }
+            });
+            
+            scene.add(clonedBackdoor);
+            
+            console.log('Added backdoor model to scene');
+        }
+
+        function addB1SeatToScene() {
+            if (!b1SeatModel) {
+                console.warn('b1Seat model not loaded yet');
+                return;
+            }
+
+            // Clone and add the b1Seat model to the scene
+            const clonedB1Seat = b1SeatModel.clone();
+            clonedB1Seat.position.set(-30, 2, -45);
+            clonedB1Seat.rotation.y = 45 * (Math.PI / 180);
+            clonedB1Seat.scale.set(10, 10, 10);
+            
+            // Apply satin texture to b1Seat
+            clonedB1Seat.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = sofaMaterial;
+                }
+            });
+            
+            scene.add(clonedB1Seat);
+            
+            console.log('Added b1Seat model to scene');
+        }
+
+        function addB2SeatToScene() {
+            if (!b2SeatModel) {
+                console.warn('b2Seat model not loaded yet');
+                return;
+            }
+
+            // Clone and add the b2Seat model to the scene
+            const clonedB2Seat = b2SeatModel.clone();
+            clonedB2Seat.position.set(30, 2, -50);
+            clonedB2Seat.rotation.y = 225 * (Math.PI / 180);
+            clonedB2Seat.scale.set(10, 10, 10);
+            
+            // Apply satin texture to b2Seat
+            clonedB2Seat.traverse((child) => {
+                if (child.isMesh) {
+                    child.material = sofaMaterial;
+                }
+            });
+            
+            scene.add(clonedB2Seat);
+            
+            console.log('Added b2Seat model to scene');
+        }
+
+        function createDividerWithDoorFrame() {
+            // Create a divider with wall texture and a transparent doorway opening
+            const dividerWidth = 47;
+            const dividerHeight = 40;
+            const doorWidth = 15;
+            const doorHeight = 20;
+            
+            const baseX = -24;
+            const baseY = 10;
+            const baseZ = 9;
+            
+            // Calculate frame dimensions
+            const topHeight = (dividerHeight - doorHeight) / 2;
+            const bottomHeight = (dividerHeight - doorHeight) / 2;
+            const leftWidth = (dividerWidth - doorWidth) / 2;
+            const rightWidth = (dividerWidth - doorWidth) / 2;
+            
+            // Create wall material
+            const dividerMaterial = wallpaperMaterial.clone();
+            
+            // Top frame piece
+            const topGeometry = new THREE.PlaneGeometry(dividerWidth, topHeight+2);
+            const topMesh = new THREE.Mesh(topGeometry, dividerMaterial.clone());
+            topMesh.position.set(baseX, baseY + (doorHeight / 2) + (topHeight / 2), baseZ);
+            topMesh.rotation.y = Math.PI / 2;
+            topMesh.rotation.x = Math.PI; // Flip to face the correct direction
+            scene.add(topMesh);
+            
+            // Bottom frame piece
+            const bottomGeometry = new THREE.PlaneGeometry(dividerWidth, bottomHeight);
+            const bottomMesh = new THREE.Mesh(bottomGeometry, dividerMaterial.clone());
+            bottomMesh.position.set(baseX, baseY - (doorHeight / 2) - (bottomHeight / 2), baseZ);
+            bottomMesh.rotation.y = Math.PI / 2;
+            scene.add(bottomMesh);
+            
+            // Left frame piece
+            const leftGeometry = new THREE.PlaneGeometry(leftWidth, doorHeight);
+            const leftMesh = new THREE.Mesh(leftGeometry, dividerMaterial.clone());
+            leftMesh.position.set(baseX, baseY, baseZ);
+            leftMesh.rotation.y = Math.PI / 2;
+           // leftMesh.rotation.x = Math.PI;
+            leftMesh.position.z -= (rightWidth / 2) + (leftWidth / 2);
+            scene.add(leftMesh);
+            
+            // Right frame piece
+            const rightGeometry = new THREE.PlaneGeometry(rightWidth, doorHeight);
+            const rightMesh = new THREE.Mesh(rightGeometry, dividerMaterial.clone());
+            rightMesh.position.set(baseX, baseY, baseZ);
+            rightMesh.rotation.y = Math.PI / 2;
+           // rightMesh.rotation.x = Math.PI;
+            rightMesh.position.z += (leftWidth / 2) + (rightWidth / 2);
+            scene.add(rightMesh);
+            
+            console.log('Added wall textured divider with doorframe entrance to scene');
+        }
+
         function replaceWindowsWithModel(model) {
             if (!windowModel) {
                 console.warn('Window model not loaded yet');
@@ -545,15 +1553,17 @@
                             // Clone window without clipping planes
                             const clonedWindow = windowModel.clone();
                             clonedWindow.applyMatrix4(child.matrixWorld);
-                            clonedWindow.scale.multiplyScalar(0.04); // Adjust scale to fit the window size
-                            clonedWindow.rotation.y = 180 * (Math.PI / 180); // Rotate 180 degrees to face the correct direction    
+                            clonedWindow.scale.set(13, 13, 13);
+                            clonedWindow.rotation.x = Math.PI; // Rotate 180 degrees to face the correct direction    
                             // Offset the window slightly in the normal direction
                             if (minAxis === 'x') {
                                 clonedWindow.position.x += side * offset;
                             } else {
                                 clonedWindow.position.z += side * offset;
                             }
-                            
+
+                           // clonedWindow.position.x += 3; // Adjust for model's original position
+                           // clonedWindow.position.y -= 3; // Adjust for model's original position
                             // Remove clipping planes from all window materials
                             clonedWindow.traverse((childWindow) => {
                                 if (childWindow.isMesh && childWindow.material) {
@@ -580,14 +1590,32 @@
                 if (child.isMesh) {
                     const name = child.name.toLowerCase();
 
-                    if (name.includes('door')) {
+                    if (child.name === 'Opening0') {
+                        child.material = skyBlueMaterial;
+                        child.visible = true;
+                        child.scale.set(1.2, 2.2, .04); // Elongate the pedestal to better fit the opening
+                        child.position.x -= 0.04; // Slightly raise the pedestal to prevent z-fighting
+                    } else if (child.name === 'Door0' || child.name === 'Door1') {
+                        child.visible = false;
+                    } else if (child.name === 'Wall11') {
+                        child.material = whiteMaterial;
+                        addWallPlanes(child, wallpaperMaterial);
+                    }
+                    else if (child.name === 'Wall16') {
+                        child.material = whiteMaterial;
+                        addWallPlanes(child, wallpaperMaterial);
+                    } else if (name.includes('door') && name.includes('wall16')) {
+                        child.visible = false;
+                    } else if (name.includes('door')) {
                         child.material = yellowMaterial;
                     } else if (name.includes('window') || name.includes('glass')) {
                         child.material = greenMaterial;
+                    } else if (child.name === 'Wall1') {
+                        child.material = whiteMaterial;
+                        addWallPlanes(child, wall1Material);
                     } else {
                         child.material = whiteMaterial;
-                        const mat = child.name === 'Wall1' ? brickMaterial : wallpaperMaterial;
-                        addWallPlanes(child, mat);
+                        addWallPlanes(child, wallpaperMaterial);
                     }
                 }
             });
@@ -1020,9 +2048,10 @@
                     updateCamera(delta);
                 }
             } else {
-                // Always update explore mode camera
-                updateCamera(delta);
-                needsRender = true; // Always render in explore mode
+                // Explore mode: only update camera and render if state changed
+                if (needsRender) {
+                    updateCamera(delta);
+                }
             }
 
             // Render if needed
@@ -1039,6 +2068,7 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            needsRender = true;
         });
 
         // Hide loading and start
