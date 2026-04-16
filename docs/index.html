@@ -1050,7 +1050,7 @@
                 planeMesh.position.z += .6;
             }
             else if(child.name=="Wall10"){
-                planeMesh.position.x -= .2;
+                planeMesh.position.x -= .05;
                 planeMesh.position.z += .2;
             }
             else if(child.name=="Wall1"){
@@ -1060,7 +1060,13 @@
             else if(child.name=="Wall0"){
                 planeMesh.position.x += .65;
                 planeMesh.scale.set(.99,1,1);
-
+            }
+            else if(child.name=="Wall16"){
+                planeMesh.position.x -= .4;
+            }
+            else if(child.name=="Wall5"){
+                planeMesh.position.x -= .4;
+                planeMesh.scale.set(1.02,1,1);
             }
             scene.add(planeMesh);
         }
@@ -1432,7 +1438,7 @@
 
             // Clone and add the b1Seat model to the scene
             const clonedB1Seat = b1SeatModel.clone();
-            clonedB1Seat.position.set(-30, 2, -45);
+            clonedB1Seat.position.set(-25, 2, -120);
             clonedB1Seat.rotation.y = 45 * (Math.PI / 180);
             clonedB1Seat.scale.set(10, 10, 10);
             
@@ -1456,9 +1462,9 @@
 
             // Clone and add the b2Seat model to the scene
             const clonedB2Seat = b2SeatModel.clone();
-            clonedB2Seat.position.set(30, 2, -50);
+            clonedB2Seat.position.set(20, 2, -120);
             clonedB2Seat.rotation.y = 225 * (Math.PI / 180);
-            clonedB2Seat.scale.set(10, 10, 10);
+            clonedB2Seat.scale.set(12, 12, 12);
             
             // Apply satin texture to b2Seat
             clonedB2Seat.traverse((child) => {
@@ -1593,8 +1599,8 @@
                     if (child.name === 'Opening0') {
                         child.material = skyBlueMaterial;
                         child.visible = true;
-                        child.scale.set(1.2, 2.2, .04); // Elongate the pedestal to better fit the opening
-                        child.position.x -= 0.04; // Slightly raise the pedestal to prevent z-fighting
+                        child.scale.set(1.2, 2.2, .05); // Elongate the pedestal to better fit the opening
+                       // child.position.x -= 0.02; // Slightly raise the pedestal to prevent z-fighting
                     } else if (child.name === 'Door0' || child.name === 'Door1') {
                         child.visible = false;
                     } else if (child.name === 'Wall11') {
