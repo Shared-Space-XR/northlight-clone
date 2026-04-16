@@ -487,7 +487,6 @@
                 if (m2PedestalModel) addM2PedestalToScene();
                 if (m1PedestalModel) addM1PedestalToScene();
                 if (mSeatModel) addMSeatToScene();
-                createDividerWithDoorFrame();
                 needsRender = true; // Trigger render after models are added
             }, 500);
             
@@ -1048,6 +1047,10 @@
             }
             else if(child.name=="Wall2"){
                 planeMesh.position.z += .6;
+                planeMesh.scale.set(1.02,1,1);
+            }
+            else if(child.name=="Wall8"){
+                planeMesh.position.z -= .2;
             }
             else if(child.name=="Wall10"){
                 planeMesh.position.x -= .05;
@@ -1478,61 +1481,6 @@
             console.log('Added b2Seat model to scene');
         }
 
-        function createDividerWithDoorFrame() {
-            // Create a divider with wall texture and a transparent doorway opening
-            const dividerWidth = 47;
-            const dividerHeight = 40;
-            const doorWidth = 15;
-            const doorHeight = 20;
-            
-            const baseX = -24;
-            const baseY = 10;
-            const baseZ = 9;
-            
-            // Calculate frame dimensions
-            const topHeight = (dividerHeight - doorHeight) / 2;
-            const bottomHeight = (dividerHeight - doorHeight) / 2;
-            const leftWidth = (dividerWidth - doorWidth) / 2;
-            const rightWidth = (dividerWidth - doorWidth) / 2;
-            
-            // Create wall material
-            const dividerMaterial = wallpaperMaterial.clone();
-            
-            // Top frame piece
-            const topGeometry = new THREE.PlaneGeometry(dividerWidth, topHeight+2);
-            const topMesh = new THREE.Mesh(topGeometry, dividerMaterial.clone());
-            topMesh.position.set(baseX, baseY + (doorHeight / 2) + (topHeight / 2), baseZ);
-            topMesh.rotation.y = Math.PI / 2;
-            topMesh.rotation.x = Math.PI; // Flip to face the correct direction
-            scene.add(topMesh);
-            
-            // Bottom frame piece
-            const bottomGeometry = new THREE.PlaneGeometry(dividerWidth, bottomHeight);
-            const bottomMesh = new THREE.Mesh(bottomGeometry, dividerMaterial.clone());
-            bottomMesh.position.set(baseX, baseY - (doorHeight / 2) - (bottomHeight / 2), baseZ);
-            bottomMesh.rotation.y = Math.PI / 2;
-            scene.add(bottomMesh);
-            
-            // Left frame piece
-            const leftGeometry = new THREE.PlaneGeometry(leftWidth, doorHeight);
-            const leftMesh = new THREE.Mesh(leftGeometry, dividerMaterial.clone());
-            leftMesh.position.set(baseX, baseY, baseZ);
-            leftMesh.rotation.y = Math.PI / 2;
-           // leftMesh.rotation.x = Math.PI;
-            leftMesh.position.z -= (rightWidth / 2) + (leftWidth / 2);
-            scene.add(leftMesh);
-            
-            // Right frame piece
-            const rightGeometry = new THREE.PlaneGeometry(rightWidth, doorHeight);
-            const rightMesh = new THREE.Mesh(rightGeometry, dividerMaterial.clone());
-            rightMesh.position.set(baseX, baseY, baseZ);
-            rightMesh.rotation.y = Math.PI / 2;
-           // rightMesh.rotation.x = Math.PI;
-            rightMesh.position.z += (leftWidth / 2) + (rightWidth / 2);
-            scene.add(rightMesh);
-            
-            console.log('Added wall textured divider with doorframe entrance to scene');
-        }
 
         function replaceWindowsWithModel(model) {
             if (!windowModel) {
@@ -1602,6 +1550,8 @@
                         child.scale.set(1.2, 2.2, .05); // Elongate the pedestal to better fit the opening
                        // child.position.x -= 0.02; // Slightly raise the pedestal to prevent z-fighting
                     } else if (child.name === 'Door0' || child.name === 'Door1') {
+                        child.visible = false;
+                    } else if (child.name === 'Wall3' || child.name === 'Wall4') {
                         child.visible = false;
                     } else if (child.name === 'Wall11') {
                         child.material = whiteMaterial;
