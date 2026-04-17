@@ -358,7 +358,7 @@
         // Load m1Pedestal model
         gltfLoader.load('./building/m1Pedestal.glb', (gltf) => {
             m1PedestalModel = gltf.scene;
-            m1PedestalModel.scale.set(8, 8, 8);
+            m1PedestalModel.scale.set(12, 12, 12);
             console.log('m1Pedestal model loaded');
         }, undefined, (error) => {
             console.error('Error loading m1Pedestal model:', error);
@@ -513,10 +513,10 @@
         scene.add(ground);
 
         // Add sky blue box
-        const boxGeometry = new THREE.BoxGeometry(34, 1, 15);
+        const boxGeometry = new THREE.BoxGeometry(34, 3, 15);
         const boxMaterial = new THREE.MeshBasicMaterial({ color: 0x87CEEB });
         const box = new THREE.Mesh(boxGeometry, boxMaterial);
-        box.position.set(-28.3, -1, 40.5);
+        box.position.set(-28.5, -3, 40.5);
         scene.add(box);
 
         // =====================================================
@@ -1197,8 +1197,8 @@
 
             // Clone and add the table model to the scene
             const clonedTable = tableModel.clone();
-            clonedTable.position.set(-22, 3, 28);
-            clonedTable.scale.set(27, 27, 27);
+            clonedTable.position.set(-23, 3, 26);
+            clonedTable.scale.set(30, 30, 30);
             
             // Apply stars texture to table
             clonedTable.traverse((child) => {
@@ -1220,8 +1220,8 @@
 
             // Clone and add the sofa model to the scene
             const clonedSofa = sofaModel.clone();
-            clonedSofa.position.set(21, 4, 33);
-            clonedSofa.scale.set(12, 12, 10);
+            clonedSofa.position.set(8, 1, 28);
+            clonedSofa.scale.set(15, 15, 12);
             clonedSofa.rotation.y = 90 * (Math.PI / 180); // Rotate 90 degrees to fit the corner
             
             // Apply satin texture to sofa
@@ -1244,8 +1244,8 @@
 
             // Clone and add the table2 model to the scene
             const clonedTable2 = table2Model.clone();
-            clonedTable2.position.set(26, 2, 33);
-            clonedTable2.scale.set(4, 4, 3.4);
+            clonedTable2.position.set(18,1, 28);
+            clonedTable2.scale.set(6, 6, 6);
             
             // Apply roman paving texture to table
             clonedTable2.traverse((child) => {
@@ -1258,8 +1258,8 @@
 
             // Clone and add the table2 model to the scene
             const clonedTable21 = table2Model.clone();
-            clonedTable21.position.set(31,2, 33);
-            clonedTable21.scale.set(4, 4, 3.4);
+            clonedTable21.position.set(25,1, 28);
+            clonedTable21.scale.set(6, 6, 6);
             
             // Apply roman paving texture to table
             clonedTable21.traverse((child) => {
@@ -1281,8 +1281,8 @@
 
             // Clone and add the sofa2 model to the scene
             const clonedSofa2 = sofa2Model.clone();
-            clonedSofa2.position.set(28, 3, 39);
-            clonedSofa2.scale.set(9, 9, 9);
+            clonedSofa2.position.set(20, 1, 39);
+            clonedSofa2.scale.set(17, 17, 15);
             clonedSofa2.rotation.y = Math.PI; // Rotate 180 degrees to fit the opposite corner
             
             // Apply satin texture to sofa
@@ -1305,9 +1305,9 @@
 
             // Clone and add the sqPedestal model to the scene
             const clonedSqPedestal = sqPedestalModel.clone();
-            clonedSqPedestal.position.set(-21, 5, 10);
+            clonedSqPedestal.position.set(-39, 1, 7);
             clonedSqPedestal.rotation.y = 90 * (Math.PI / 180); // Rotate 45 degrees for better angle
-            clonedSqPedestal.scale.set(8, 8, 8);
+            clonedSqPedestal.scale.set(10, 10, 10);
             
             // Apply marble texture and enable shadows
             clonedSqPedestal.traverse((child) => {
@@ -1331,8 +1331,8 @@
 
             // Clone and add the recPedestal model to the scene
             const clonedRecPedestal = recPedestalModel.clone();
-            clonedRecPedestal.position.set(29, 5, 25);
-            clonedRecPedestal.scale.set(7, 7, 7);
+            clonedRecPedestal.position.set(24, 1, 12);
+            clonedRecPedestal.scale.set(10, 10, 10);
             
             // Apply marble texture and enable shadows
             clonedRecPedestal.traverse((child) => {
@@ -1356,7 +1356,7 @@
 
             // Clone and add the m2Pedestal model to the scene
             const clonedM2Pedestal = m2PedestalModel.clone();
-            clonedM2Pedestal.position.set(-15, 5, -80);
+            clonedM2Pedestal.position.set(-15, 1, -84);
             clonedM2Pedestal.scale.set(8, 8, 8);
             
             // Apply pedestal material and enable shadows
@@ -1382,10 +1382,10 @@
             }
 
             // Clone and add the m1Pedestal model to the scene
-            const clonedM1Pedestal = m1PedestalModel.clone();
-            clonedM1Pedestal.position.set(-5, 5, -56);
-            clonedM1Pedestal.rotation.y = -45 * (Math.PI / 180); // Rotate 45 degrees for better angle
-            clonedM1Pedestal.scale.set(8, 8, 8);
+            const clonedM1Pedestal = m2PedestalModel.clone();
+            clonedM1Pedestal.position.set(-5, 1, -56);
+            clonedM1Pedestal.rotation.y = 45 * (Math.PI / 180); // Rotate 45 degrees for better angle
+            clonedM1Pedestal.scale.set(10, 10, 10);
             
             // Apply pedestal material and enable shadows
             clonedM1Pedestal.traverse((child) => {
@@ -1409,9 +1409,9 @@
 
             // Clone and add the mSeat model to the scene
             const clonedMSeat = mSeatModel.clone();
-            clonedMSeat.position.set(15, 2, -41);
+            clonedMSeat.position.set(15, 1, -41);
             clonedMSeat.rotation.y = 45 * (Math.PI / 180); // Rotate 45 degrees for better angle
-            clonedMSeat.scale.set(10, 10, 10);
+            clonedMSeat.scale.set(13, 13, 13);
             
             // Apply satin texture to mSeat
             clonedMSeat.traverse((child) => {
@@ -1423,9 +1423,9 @@
             scene.add(clonedMSeat);
 
             const clonedMSeat1 = mSeatModel.clone();
-            clonedMSeat1.position.set(12, 2, -44);
+            clonedMSeat1.position.set(11, 1, -45);
             clonedMSeat1.rotation.y = 225 * (Math.PI / 180); // Rotate 45 degrees for better angle
-            clonedMSeat1.scale.set(10, 10, 10);
+            clonedMSeat1.scale.set(13, 13, 13);
             
             // Apply satin texture to mSeat
             clonedMSeat1.traverse((child) => {
@@ -1485,7 +1485,7 @@
 
             // Clone and add the b1Seat model to the scene
             const clonedB1Seat = b1SeatModel.clone();
-            clonedB1Seat.position.set(-25, 2, -120);
+            clonedB1Seat.position.set(-25, 1, -120);
             clonedB1Seat.rotation.y = 45 * (Math.PI / 180);
             clonedB1Seat.scale.set(10, 10, 10);
             
@@ -1509,7 +1509,7 @@
 
             // Clone and add the b2Seat model to the scene
             const clonedB2Seat = b2SeatModel.clone();
-            clonedB2Seat.position.set(20, 2, -120);
+            clonedB2Seat.position.set(20, 1, -120);
             clonedB2Seat.rotation.y = 225 * (Math.PI / 180);
             clonedB2Seat.scale.set(12, 12, 12);
             
@@ -1544,14 +1544,14 @@
 
                         // Determine which axis is the thin/normal axis
                         const minAxis = size.x < size.z ? 'x' : 'z';
-                        const offset = 0.5;
+                        const offset = 0.1;
 
                         // Add window models on both sides (inside and outside)
                         [-1, 1].forEach((side) => {
                             // Clone window without clipping planes
                             const clonedWindow = windowModel.clone();
                             clonedWindow.applyMatrix4(child.matrixWorld);
-                            clonedWindow.scale.set(13, 13, 13);
+                            clonedWindow.scale.set(13, 13, 5);
                             clonedWindow.rotation.x = Math.PI; // Rotate 180 degrees to face the correct direction    
                             // Offset the window slightly in the normal direction
                             if (minAxis === 'x') {
@@ -1560,7 +1560,7 @@
                                 clonedWindow.position.z += side * offset;
                             }
 
-                           // clonedWindow.position.x += 3; // Adjust for model's original position
+                            clonedWindow.position.z += .2; // Adjust for model's original position
                            // clonedWindow.position.y -= 3; // Adjust for model's original position
                             // Remove clipping planes from all window materials
                             clonedWindow.traverse((childWindow) => {
@@ -1594,6 +1594,8 @@
                         child.scale.set(1.2, 2.3, .1); // Elongate the pedestal to better fit the opening
                         child.position.x += 0.1; // Slightly raise the pedestal to prevent z-fighting
                     } else if (child.name === 'Door0' || child.name === 'Door1') {
+                        child.visible = false;
+                    } else if (child.name === 'Window0') {
                         child.visible = false;
                     } else if (child.name === 'Wall3' || child.name === 'Wall4' || child.name === 'Wall5') {
                         child.visible = false;
