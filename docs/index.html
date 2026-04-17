@@ -1056,9 +1056,19 @@
                 planeMesh.position.x += .05;
                 planeMesh.position.z += .5;
             }
-            else if(child.name=="Wall1"){
-                planeMesh.position.x -= .4;
-                planeMesh.scale.set(.98,1,1);
+            else if(child.name=="Wall1" || child.name=="Wall6"){
+                // Scale texture repeat to maintain consistent brick size
+                if(mat.map && mat.map.repeat) {
+                    const referenceSize = 30;
+                    const scaleX = planeW / referenceSize;
+                    const scaleY = planeH / referenceSize;
+                    planeMat.map = planeMat.map.clone();
+                    planeMat.map.repeat.set(2 * scaleX, 3 * scaleY);
+                }
+                if(child.name=="Wall1"){
+                    planeMesh.position.x -= .4;
+                    planeMesh.scale.set(.98,1,1);
+                }
             }
             else if(child.name=="Wall0"){
                 planeMesh.position.x += .65;
@@ -1068,7 +1078,7 @@
             else if(child.name=="Wall16"){
                 planeMesh.position.x -= .4;
             }
-            else if(child.name=="Wall5"){
+            else if(child.name=="Wall6"){
                 planeMesh.position.x -= .4;
                 planeMesh.scale.set(1.02,1,1);
             }
@@ -1079,14 +1089,29 @@
             // Create a thin box (sheet) with brick on outside and wall texture on inside
             const geometry = new THREE.BoxGeometry(width, height, depth);
             
+            // Calculate texture repeat scaling for consistent brick size
+            const referenceSize = 30;
+            const scaleX = width / referenceSize;
+            const scaleY = height / referenceSize;
+            
+            // Helper function to create brick material with scaled repeats
+            const createScaledBrickMaterial = () => {
+                const mat = wall1Material.clone();
+                if(mat.map) {
+                    mat.map = mat.map.clone();
+                    mat.map.repeat.set(2 * scaleX, 3 * scaleY);
+                }
+                return mat;
+            };
+            
             // Create material array for the 6 faces: right, left, top, bottom, front, back
             const materials = [
-                wall1Material.clone(),      // right (+x): brick
-                wall1Material.clone(),  // left (-x): wallpaper (inside)
-                wall1Material.clone(),      // top (+y): brick
-                wall1Material.clone(),      // bottom (-y): brick
-                wall1Material.clone(),      // front (+z): brick
-                wallpaperMaterial.clone()   // back (-z): wallpaper (inside)
+                createScaledBrickMaterial(),      // right (+x): brick
+                createScaledBrickMaterial(),      // left (-x): brick
+                createScaledBrickMaterial(),      // top (+y): brick
+                createScaledBrickMaterial(),      // bottom (-y): brick
+                createScaledBrickMaterial(),      // front (+z): brick
+                wallpaperMaterial.clone()         // back (-z): wallpaper (inside)
             ];
             
             const facade = new THREE.Mesh(geometry, materials);
