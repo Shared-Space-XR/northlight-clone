@@ -42,7 +42,6 @@
             padding: 15px;
             border-radius: 8px;
             z-index: 100;
-            display: none
         }
         .mode-button {
             padding: 8px 15px;
@@ -194,11 +193,12 @@
                     <p>ESC - Release mouse</p>
                 `;
                 isLocked = false;
-                // Preserve current X and Z from explore mode, set to ground level (Y=5 for eye height)
-                const currentX = camera.position.x;
-                const currentZ = camera.position.z;
-                camera.position.set(currentX, 5, currentZ);
-                console.log('Switched to Game Mode at position:', camera.position);
+                camera.position.set(-4, 5, 20);
+                yaw = 0; // Face inward (toward the gallery)
+                pitch = 0;
+                const spawnEuler = new THREE.Euler(pitch, yaw, Math.PI, 'YXZ');
+                camera.quaternion.setFromEuler(spawnEuler);
+                needsRender = true;
             } else {
                 gameModeBtn.classList.remove('active');
                 exploreModeBtn.classList.add('active');
@@ -1773,9 +1773,12 @@
             }
         });
 
+        let lockAcquiredAt = 0;
+
         document.addEventListener('pointerlockchange', () => {
             isLocked = !!document.pointerLockElement;
             if (isLocked) {
+                lockAcquiredAt = performance.now(); // Record time to suppress post-lock inertia
                 document.getElementById('info').style.opacity = '0.3';
             } else {
                 document.getElementById('info').style.opacity = '1';
@@ -1785,9 +1788,14 @@
         document.addEventListener('mousemove', (event) => {
             if (currentMode === 'game') {
                 if (!isLocked) return;
+                // Ignore movement for 300ms after lock to absorb click/trackpad inertia
+                if (performance.now() - lockAcquiredAt < 300) return;
+                const dx = Math.round(event.movementX);
+                const dy = Math.round(event.movementY);
+                if (dx === 0 && dy === 0) return;
                 
-                yaw -= event.movementX * pointerSpeed;
-                pitch -= event.movementY * pointerSpeed;
+                yaw -= dx * pointerSpeed;
+                pitch -= dy * pointerSpeed;
                 
                 // Clamp pitch to prevent flipping
                 const PI_2 = Math.PI / 2;
@@ -1917,7 +1925,7 @@
         });
 
         // Movement
-        const moveSpeed = 0.15;
+        const moveSpeed = 0.25;
         const turnSpeed = 0.04;
 
         const moveState = {
@@ -1975,6 +1983,22 @@
                         moveState.right = false;
                         break;
                 }
+            }
+        });
+
+        // Clear movement state when window loses focus to prevent stuck keys
+        window.addEventListener('blur', () => {
+            moveState.forward = false;
+            moveState.backward = false;
+            moveState.left = false;
+            moveState.right = false;
+        });
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                moveState.forward = false;
+                moveState.backward = false;
+                moveState.left = false;
+                moveState.right = false;
             }
         });
 
