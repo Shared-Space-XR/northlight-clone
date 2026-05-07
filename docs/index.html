@@ -923,14 +923,14 @@
 
         
         // Ambient light for overall illumination
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
-        const hemiLight = new THREE.HemisphereLight(0xfff4e8, 0x222018, 0.7);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+        const hemiLight = new THREE.HemisphereLight(0xfff8f0, 0x404040, 1.0);
         scene.add(hemiLight);
         scene.add(ambientLight);
         
-        // Directional light from above (like natural light through windows)
-        const directionalLight = new THREE.DirectionalLight(0xfff5e8, 1.4);
-        directionalLight.position.set(50, 50, 50);
+        // Key light from above-front-right (like skylights)
+        const directionalLight = new THREE.DirectionalLight(0xfff8f0, 1.8);
+        directionalLight.position.set(50, 80, 50);
         directionalLight.castShadow = true;
         directionalLight.shadow.mapSize.width = 2048;
         directionalLight.shadow.mapSize.height = 2048;
@@ -941,14 +941,19 @@
         scene.add(directionalLight);
         
         // Fill light from opposite direction
-        const fillLight = new THREE.DirectionalLight(0xe8f0ff, 0.9);
-        fillLight.position.set(-50, 30, -50);
+        const fillLight = new THREE.DirectionalLight(0xf0f4ff, 1.2);
+        fillLight.position.set(-50, 40, -50);
         scene.add(fillLight);
 
-        // Second fill from front to eliminate dark faces
-        const frontFillLight = new THREE.DirectionalLight(0xffffff, 0.6);
-        frontFillLight.position.set(0, 20, 100);
+        // Front fill
+        const frontFillLight = new THREE.DirectionalLight(0xffffff, 1.0);
+        frontFillLight.position.set(0, 30, 100);
         scene.add(frontFillLight);
+
+        // Back fill to eliminate dark rear walls
+        const backFillLight = new THREE.DirectionalLight(0xfff0e8, 0.8);
+        backFillLight.position.set(0, 20, -150);
+        scene.add(backFillLight);
 
         // =====================================================
         // MODEL COLORIZATION
