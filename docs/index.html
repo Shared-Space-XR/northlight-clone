@@ -132,6 +132,7 @@
         import * as THREE from 'three';
         import { GLTFLoader } from 'https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
         import { VRButton } from 'https://unpkg.com/three@0.160.0/examples/jsm/webxr/VRButton.js';
+        import { GLTFExporter } from 'https://unpkg.com/three@0.160.0/examples/jsm/exporters/GLTFExporter.js';
 
         // Scene setup
         const scene = new THREE.Scene();
@@ -155,23 +156,7 @@
         // Flat roof group — populated later, shown only in game mode
         let roofGroup = null;
 
-        // Interior roof lights — shown only in game mode
-        const roofLightsGroup = new THREE.Group();
-        roofLightsGroup.visible = false;
-        scene.add(roofLightsGroup);
 
-        // Spread point lights along the building length at ceiling height
-        // Building: X -42..42, Z -142..44, ceiling ~y 26
-        const _RL_Y = 24;   // just below ceiling
-        const _RL_COLS = [-20, 0, 20];           // three columns across width
-        const _RL_ROWS = [-120, -80, -40, 0, 28]; // five rows along depth
-        _RL_COLS.forEach(rx => {
-            _RL_ROWS.forEach(rz => {
-                const pl = new THREE.PointLight(0xfff5e0, 1.2, 80, 1.5);
-                pl.position.set(rx, _RL_Y, rz);
-                roofLightsGroup.add(pl);
-            });
-        });
 
         function buildWalkDebug() {
             walkDebugGroup.clear();
@@ -268,7 +253,6 @@
                 buildWalkDebug();
                 walkDebugGroup.visible = debugMode;
                 if (roofGroup) roofGroup.visible = true;
-                roofLightsGroup.visible = true;
                 vrButton.style.display = '';
                 needsRender = true;
             } else {
@@ -283,7 +267,6 @@
                 `;
                 walkDebugGroup.visible = false;
                 if (roofGroup) roofGroup.visible = false;
-                roofLightsGroup.visible = false;
                 vrButton.style.display = 'none';
                 needsRender = true;
             }
@@ -627,8 +610,8 @@
             // --- Concrete palette: dark stained base ↔ light weathered surface ---
             // background (dark wet / shadowed concrete): rgb(52, 50, 46)
             // color      (light dry concrete face):      rgb(175, 170, 162)
-            const bgR = 34,  bgG = 32,  bgB = 30;
-            const fgR = 112, fgG = 109, fgB = 104;
+            const bgR = 8,   bgG = 8,   bgB = 8;
+            const fgR = 55,  fgG = 53,  fgB = 50;
 
             const img = ctx.createImageData(size, size);
             const d = img.data;
@@ -689,55 +672,109 @@
 
         (function buildFlatRoof() {
 
-            // ── Wood texture ─────────────────────────────────────────
+            // ── Wood texture (warm medium-dark like photo) ─────────────────
+            // Canvas 2D port of boytchev processed-wood TSL texture
+            // Algorithm: noise(pos*vec3(xscale,xscale*len,xscale*len)) modulated by
+            // high-freq grain noise, then smoothstepped to ring bands.
             function mkWood() {
+                const W = 256, H = 512;
                 const cv = document.createElement('canvas');
-                cv.width = cv.height = 512;
+                cv.width = W; cv.height = H;
                 const cx = cv.getContext('2d');
-                // brown base
-                cx.fillStyle = '#7a4f24';
-                cx.fillRect(0, 0, 512, 512);
-                for (let i = 0; i < 120; i++) {
-                    const x = Math.random() * 512;
-                    const v = Math.floor(Math.random() * 45);
-                    cx.strokeStyle = `rgba(${80+v},${35+v},5,${0.1+Math.random()*0.25})`;
-                    cx.lineWidth = 0.5 + Math.random() * 2;
-                    cx.beginPath();
-                    cx.moveTo(x + (Math.random()-0.5)*10, 0);
-                    cx.lineTo(x + (Math.random()-0.5)*10, 512);
-                    cx.stroke();
+
+                // 3D Perlin noise setup
+                const P = new Uint8Array(512);
+                for (let i = 0; i < 256; i++) P[i] = i;
+                for (let i = 255; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [P[i], P[j]] = [P[j], P[i]];
                 }
-                for (let i = 0; i < 4; i++) {
-                    const kx = Math.random()*512, ky = Math.random()*512;
-                    for (let r = 16; r > 2; r -= 4) {
-                        cx.strokeStyle = `rgba(60,25,5,${0.3-r*0.01})`;
-                        cx.lineWidth = 1.5;
-                        cx.beginPath();
-                        cx.ellipse(kx, ky, r, r*0.5, 0.3, 0, Math.PI*2);
-                        cx.stroke();
+                for (let i = 0; i < 256; i++) P[256 + i] = P[i];
+
+                function fade(t) { return t * t * (3 - 2 * t); }
+                function lerp(a, b, t) { return a + t * (b - a); }
+                function g3(h, x, y, z) {
+                    h &= 15;
+                    const u = h < 8 ? x : y;
+                    const v = h < 4 ? y : (h === 12 || h === 14 ? x : z);
+                    return ((h & 1) ? -u : u) + ((h & 2) ? -v : v);
+                }
+                function noise3(x, y, z) {
+                    const X = Math.floor(x) & 255, Y = Math.floor(y) & 255, Z = Math.floor(z) & 255;
+                    x -= Math.floor(x); y -= Math.floor(y); z -= Math.floor(z);
+                    const u = fade(x), v = fade(y), w = fade(z);
+                    const A = P[X]+Y, AA = P[A]+Z, AB = P[A+1]+Z, B = P[X+1]+Y, BA = P[B]+Z, BB = P[B+1]+Z;
+                    return lerp(
+                        lerp(lerp(g3(P[AA],x,y,z),   g3(P[BA],x-1,y,z),  u),
+                             lerp(g3(P[AB],x,y-1,z), g3(P[BB],x-1,y-1,z),u), v),
+                        lerp(lerp(g3(P[AA+1],x,y,z-1),   g3(P[BA+1],x-1,y,z-1),  u),
+                             lerp(g3(P[AB+1],x,y-1,z-1), g3(P[BB+1],x-1,y-1,z-1),u), v),
+                        w
+                    );
+                }
+
+                // Processed-wood shader parameters (matching TSL defaults)
+                const SCALE = 2, LENGTHS = 4, STRENGTH = 0.3;
+                const xscale = SCALE / 2 + 1;          // 2
+                const len    = 1 / (LENGTHS + 5);      // 1/9 ≈ 0.111
+                const expS   = Math.exp(SCALE);         // e^2 ≈ 7.389
+
+                // Color palette matching the boytchev defaults but warm wood tones
+                // color (grain/dark): #702020 → warm dark brown  background (light): #F0D0A0 → light tan
+                const cR = 0x18, cG = 0x0a, cB = 0x04;
+                const bgR = 0x48, bgG = 0x30, bgB = 0x18;
+
+                const img = cx.createImageData(W, H);
+                const d = img.data;
+
+                for (let py = 0; py < H; py++) {
+                    for (let px = 0; px < W; px++) {
+                        // Shader X = along grain (beam length → texture Y)
+                        // Shader Y = across grain (beam width → texture X)
+                        const sx = (py / H) * expS;
+                        const sy = (px / W) * expS;
+                        const sz = 0.5; // slight Z offset to avoid flat artefacts
+
+                        // k = noise(pos * vec3(xscale, xscale*len, xscale*len))
+                        let k = noise3(sx * xscale, sy * xscale * len, sz * xscale * len);
+
+                        // k *= (noise(pos * vec3(25,1,1)) - 1) * 0.2
+                        k *= (noise3(sx * 25, sy, sz) - 1) * 0.2;
+
+                        // k = 1 - smoothstep(-0.3, 0.3, k + strength - 0.5)
+                        const kk = k + STRENGTH - 0.5;
+                        const t  = Math.max(0, Math.min(1, (kk + 0.3) / 0.6));
+                        const sm = t * t * (3 - 2 * t);
+                        const result = 1 - sm;
+
+                        // mix(color, background, result)
+                        const r = Math.round(cR + (bgR - cR) * result);
+                        const g = Math.round(cG + (bgG - cG) * result);
+                        const b = Math.round(cB + (bgB - cB) * result);
+
+                        const idx = (py * W + px) * 4;
+                        d[idx] = r; d[idx+1] = g; d[idx+2] = b; d[idx+3] = 255;
                     }
                 }
+                cx.putImageData(img, 0, 0);
+
                 const t = new THREE.CanvasTexture(cv);
                 t.wrapS = t.wrapT = THREE.RepeatWrapping;
                 return t;
             }
 
-            const beamMat = new THREE.MeshStandardMaterial({
-                map: mkWood(),
-                color: 0xC8843A,
-                roughness: 0.75,
-                metalness: 0.1
-            });
+            const woodTex = mkWood();
 
-            // Translucent deck underside — BackSide so only inside face renders
-            const deckMat = new THREE.MeshStandardMaterial({
-                color: 0x3a2e22,
-                roughness: 0.95,
-                metalness: 0.0,
-                side: THREE.BackSide,
-                transparent: true,
-                opacity: 0.35
-            });
+            // MeshBasicMaterial to stay lit regardless of ambient (consistent with rest of scene)
+            const beamMat = new THREE.MeshStandardMaterial({ map: woodTex, color: 0xffffff });
+            // Cross-brace metal — near-black painted steel like photo
+            const braceMat = new THREE.MeshStandardMaterial({ color: 0xa0a0a0 });
+            // Dark void above the beams
+            const darkMat = new THREE.MeshBasicMaterial({ color: 0x151210, side: THREE.BackSide });
+            // Can-light housing — matte white disc
+            const canMat  = new THREE.MeshBasicMaterial({ color: 0xe8e8e0 });
+            // Can-light emissive lens — bright white circle
+            const lensMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
 
             roofGroup = new THREE.Group();
             roofGroup.name = 'flatRoof';
@@ -747,47 +784,138 @@
             const Z1 = -142, Z2 = 44;
             const W  = X2 - X1;   // 84
             const D  = Z2 - Z1;   // 186
-            const CX = 0, CZ = (Z1 + Z2) / 2;
+            const CX = (X1+X2)*0.5;
+            const CZ = (Z1+Z2)*0.5;
 
-            const CEIL_Y = 26;    // underside of deck
-            const JH = 1.6;       // joist depth
-            const JW = 0.9;       // joist width
+            const CEIL_Y = 28;       // top-of-structure / deck height
+
+            // ── Primary joists: run along Z (gallery depth), spaced along X ──
+            const JOIST_SPACING = 7;  // gap between joists
+            const JW = 0.55;          // joist face-width
+            const JH = 2.0;           // joist depth (hangs down)
             const JY = CEIL_Y - JH * 0.5;
-            const BAY = 12;       // joist spacing
 
-            function ab(x, y, z, w, h, d) {
-                const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), beamMat);
+            function addBox(x, y, z, w, h, d, mat) {
+                const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
                 m.position.set(x, y, z);
-                m.castShadow = true;
-                m.receiveShadow = true;
                 roofGroup.add(m);
             }
 
-            // Deck plane (inside face only)
-            const deck = new THREE.Mesh(new THREE.PlaneGeometry(W, D), deckMat);
-            deck.rotation.x = -Math.PI / 2;
-            deck.position.set(CX, CEIL_Y, CZ);
-            roofGroup.add(deck);
-
-            // Joists — span full width (X), spaced along Z
-            for (let z = Z1; z <= Z2 + 0.1; z += BAY) {
-                ab(CX, JY, z, W, JH, JW);
+            // Joists spanning full gallery WIDTH (X axis), spaced along Z
+            const joistXs = [];  // reused by brace loop — stores Z positions of joists
+            for (let z = Z1; z <= Z2 + 0.01; z += JOIST_SPACING) {
+                joistXs.push(z);
+                addBox(CX, JY, z, W, JH, JW, beamMat);
             }
 
-            // Ledger beams along each long wall
-            ab(X1 + JW * 0.5, JY, CZ, JW, JH, D);
-            ab(X2 - JW * 0.5, JY, CZ, JW, JH, D);
+            // ── Cross-blocking / purlins: run along Z, spaced along X ──
+            const CROSS_SPACING = 9;
+            const CW = 0.4;   // cross-piece width
+            const CH = 1.4;   // cross-piece depth (shallower than joists)
+            const CY = CEIL_Y - CH * 0.5 - 0.05; // hang from same top face
 
-            // Blocking — short cross members between joists at mid-span
-            const MID_X_L = -W * 0.25;
-            const MID_X_R =  W * 0.25;
-            for (let z = Z1 + BAY * 0.5; z < Z2; z += BAY) {
-                ab(MID_X_L, JY, z, JW, JH * 0.9, BAY);
-                ab(MID_X_R, JY, z, JW, JH * 0.9, BAY);
+            const crossZs = [];  // stores X positions of cross-pieces
+            for (let x = X1; x <= X2 + 0.01; x += CROSS_SPACING) {
+                crossZs.push(x);
+                addBox(x, CY, CZ, CW, CH, D, beamMat);
+            }
+
+            // ── Ledger beams on short end walls (front & back) ──
+            addBox(CX, JY, Z1 + JW*0.5, W, JH, JW, beamMat);
+            addBox(CX, JY, Z2 - JW*0.5, W, JH, JW, beamMat);
+
+            // ── X-diagonal bracing between adjacent joist bays ──
+            const BT = 0.18;
+            const BW = 0.12;
+
+            for (let zi = 0; zi < joistXs.length - 1; zi++) {
+                for (let xi = 0; xi < crossZs.length - 1; xi++) {
+                    const bz = (joistXs[zi] + joistXs[zi+1]) * 0.5;
+                    const bx = (crossZs[xi] + crossZs[xi+1]) * 0.5;
+                    const spanZ = joistXs[zi+1] - joistXs[zi];
+                    const spanX = crossZs[xi+1] - crossZs[xi];
+                    const len   = Math.sqrt(spanX*spanX + spanZ*spanZ);
+                    const angleY = Math.atan2(spanX, spanZ);
+
+                    // Diagonal 1  (\)
+                    const d1 = new THREE.Mesh(new THREE.BoxGeometry(BW, BT, len), braceMat);
+                    d1.position.set(bx, CEIL_Y - JH + BT*0.5, bz);
+                    d1.rotation.y = angleY;
+                    roofGroup.add(d1);
+
+                    // Diagonal 2  (/)
+                    const d2 = new THREE.Mesh(new THREE.BoxGeometry(BW, BT, len), braceMat);
+                    d2.position.set(bx, CEIL_Y - JH + BT*0.5, bz);
+                    d2.rotation.y = -angleY;
+                    roofGroup.add(d2);
+                }
+            }
+
+            // ── Dark deck above ──
+            const deck = new THREE.Mesh(new THREE.PlaneGeometry(W, D), darkMat);
+            deck.rotation.x = Math.PI * 0.5;
+            deck.position.set(CX, CEIL_Y + 0.05, CZ);
+            roofGroup.add(deck);
+
+            // ── Solid black top plane (covers roof exterior) ──
+            const topMat = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
+            const topPlane = new THREE.Mesh(new THREE.PlaneGeometry(W+100, D+100), topMat);
+            topPlane.rotation.x = Math.PI * 0.5;
+            topPlane.position.set(CX, CEIL_Y + 0.2, CZ);
+            roofGroup.add(topPlane);
+
+            // ── Can lights — hanging at regular grid between joists ──
+            const CAN_R    = 0.45;   // housing radius
+            const CAN_H    = 0.35;   // housing depth
+            const LENS_R   = 0.30;   // lens radius
+            const CAN_Y    = CEIL_Y - JH + CAN_H*0.5 + 0.02;  // bottom of cross-pieces
+            const canGeom  = new THREE.CylinderGeometry(CAN_R, CAN_R, CAN_H, 12);
+            const lensGeom = new THREE.CircleGeometry(LENS_R, 12);
+
+            // joistXs = Z positions of width-spanning joists
+            // crossZs  = X positions of depth-spanning cross-pieces
+            for (let zi = 0; zi < joistXs.length - 1; zi++) {
+                const lz = (joistXs[zi] + joistXs[zi+1]) * 0.5;
+                for (let xi = 0; xi < crossZs.length - 1; xi++) {
+                    if ((zi + xi) % 2 !== 0) continue;
+                    const lx = (crossZs[xi] + crossZs[xi+1]) * 0.5;
+                    const housing = new THREE.Mesh(canGeom, canMat);
+                    housing.position.set(lx, CAN_Y, lz);
+                    roofGroup.add(housing);
+                    const lens = new THREE.Mesh(lensGeom, lensMat);
+                    lens.rotation.x = Math.PI * 0.5;
+                    lens.position.set(lx, CAN_Y - CAN_H*0.5 - 0.01, lz);
+                    roofGroup.add(lens);
+                }
             }
 
             scene.add(roofGroup);
         })();
+
+        // Call downloadRoofGLB() in the browser console to export the roof as a .glb file
+        function downloadRoofGLB() {
+            const exporter = new GLTFExporter();
+            const wasVisible = roofGroup.visible;
+            roofGroup.visible = true; // GLTFExporter skips invisible objects
+            roofGroup.traverse(c => { c._wasVisible = c.visible; c.visible = true; });
+            exporter.parse(roofGroup, (glb) => {
+                roofGroup.visible = wasVisible;
+                roofGroup.traverse(c => { c.visible = c._wasVisible; });
+                const blob = new Blob([glb], { type: 'application/octet-stream' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'roof.glb';
+                a.click();
+                URL.revokeObjectURL(a.href);
+            }, (err) => {
+                roofGroup.visible = wasVisible;
+                roofGroup.traverse(c => { c.visible = c._wasVisible; });
+                console.error('GLTFExporter error:', err);
+            }, { binary: true });
+        }
+       // setTimeout(() => {
+       //downloadRoofGLB();
+       // }, 3000);
 
         // =====================================================
         // LIGHTING
@@ -1727,7 +1855,7 @@
 
             // Clone and add the b1Seat model to the scene
             const clonedB1Seat = b1SeatModel.clone();
-            clonedB1Seat.position.set(-25, 0, -119);
+            clonedB1Seat.position.set(-25, 0, -115);
             clonedB1Seat.rotation.y = 45 * (Math.PI / 180);
             clonedB1Seat.scale.set(10, 10, 10);
             
@@ -1744,7 +1872,7 @@
 
             // Clone and add the b2Seat model to the scene
             const clonedB2Seat = b2SeatModel.clone();
-            clonedB2Seat.position.set(20, 0, -119);
+            clonedB2Seat.position.set(20, 0, -115);
             clonedB2Seat.rotation.y = 225 * (Math.PI / 180);
             clonedB2Seat.scale.set(12, 12, 12);
             
