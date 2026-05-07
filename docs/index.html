@@ -2002,8 +2002,10 @@
         
         let pitch = 0;
         let yaw = 0;
+        let pendingDX = 0, pendingDY = 0; // accumulated raw mouse deltas, flushed each frame
         
         const pointerSpeed = 0.004;
+        const _euler = new THREE.Euler(0, 0, 0, 'YXZ'); // reused — avoids per-event allocation
         
         document.addEventListener('click', () => {
             if (currentMode === 'game') {
@@ -2032,23 +2034,9 @@
                 if (!isLocked) return;
                 // Ignore movement for 300ms after lock to absorb click/trackpad inertia
                 if (performance.now() - lockAcquiredAt < 300) return;
-                const dx = Math.round(event.movementX);
-                const dy = Math.round(event.movementY);
-                if (dx === 0 && dy === 0) return;
-                
-                yaw -= dx * pointerSpeed;
-                pitch -= dy * pointerSpeed;
-                
-                // Clamp pitch to prevent flipping
-                const PI_2 = Math.PI / 2;
-                pitch = Math.max(-PI_2, Math.min(PI_2, pitch));
-                
-                // Apply rotation using Euler angles
-                const euler = new THREE.Euler(pitch, yaw, 0, 'YXZ');
-                camera.quaternion.setFromEuler(euler);
-                
-                // Mark scene as needing render
-                needsRender = true;
+                // Accumulate raw (unrounded) deltas — flushed each rAF to avoid jitter
+                pendingDX += event.movementX;
+                pendingDY += event.movementY;
             } else {
                 // Explore mode: rotate by default, shift+drag to pan
                 if (event.buttons === 1) {
@@ -2312,6 +2300,17 @@
 
             if (currentMode === 'game') {
                 if (isLocked || renderer.xr.isPresenting) {
+                    // Flush accumulated mouse deltas once per frame (smooth, no rounding jitter)
+                    if (pendingDX !== 0 || pendingDY !== 0) {
+                        const PI_2 = Math.PI / 2;
+                        yaw   -= pendingDX * pointerSpeed;
+                        pitch -= pendingDY * pointerSpeed;
+                        pitch  = Math.max(-PI_2, Math.min(PI_2, pitch));
+                        _euler.set(pitch, yaw, 0, 'YXZ');
+                        camera.quaternion.setFromEuler(_euler);
+                        pendingDX = 0;
+                        pendingDY = 0;
+                    }
                     updateCamera(delta);
                 }
                 // Always render in game mode (VR needs every frame)
