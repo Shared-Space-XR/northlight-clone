@@ -780,7 +780,7 @@
             roofGroup.name = 'flatRoof';
             roofGroup.visible = false;
 
-            const X1 = -42, X2 = 42;
+            const X1 = -45, X2 = 42;
             const Z1 = -142, Z2 = 44;
             const W  = X2 - X1;   // 84
             const D  = Z2 - Z1;   // 186
@@ -858,8 +858,8 @@
             roofGroup.add(deck);
 
             // ── Translucent black top plane (covers roof exterior) ──
-            const topMat = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide, transparent: true, opacity: 0.85 });
-            const topPlane = new THREE.Mesh(new THREE.PlaneGeometry(W+100, D+100), topMat);
+            const topMat = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide, transparent: true, opacity: 0.75 });
+            const topPlane = new THREE.Mesh(new THREE.PlaneGeometry(W+10, D+10), topMat);
             topPlane.rotation.x = Math.PI * 0.5;
             topPlane.position.set(CX, CEIL_Y + 0.2, CZ);
             roofGroup.add(topPlane);
