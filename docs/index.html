@@ -350,7 +350,7 @@
         gltfLoader.load('./building/frontdoor.glb', (gltf) => {
             frontDoorModel = gltf.scene;
             frontDoorModel.scale.set(10, 10, 10);
-            frontDoorModel.position.set(0, 0, 10);
+            frontDoorModel.position.set(0, -1, 10);
             console.log('Front door model loaded');
         }, undefined, (error) => {
             console.error('Error loading front door model:', error);
@@ -1806,7 +1806,7 @@
         }
 
         function addSqPedestalToScene() {
-            makePedestal(-41, -4, 7,  4, 10, 9);
+            makePedestal(-40, -4, 7,  4, 10, 9);
             console.log('Added sqPedestal to scene');
         }
 
