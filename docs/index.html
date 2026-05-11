@@ -647,11 +647,17 @@
         }
 
         // Exterior ground
+        const concreteFloorTexture = textureLoader.load('./building/concrete.png');
+        concreteFloorTexture.wrapS = THREE.RepeatWrapping;
+        concreteFloorTexture.wrapT = THREE.RepeatWrapping;
+        concreteFloorTexture.repeat.set(4, 9);
+        concreteFloorTexture.magFilter = THREE.LinearFilter;
+        concreteFloorTexture.minFilter = THREE.LinearMipmapLinearFilter;
+
         const groundGeometry = new THREE.PlaneGeometry(84.8, 186);
-        const groundMaterial = new THREE.MeshStandardMaterial({
-            map: createConcreteTexture(),
-            roughness: 0.85,
-            metalness: 0.0
+        const groundMaterial = new THREE.MeshBasicMaterial({
+            map: concreteFloorTexture,
+            color: 0x888888
         });
         const ground = new THREE.Mesh(groundGeometry, groundMaterial);
         ground.rotation.x = -Math.PI / 2;
@@ -1732,6 +1738,382 @@
             scene.add(clonedTable);
             addObjectCollider(clonedTable);
             console.log('Added table model to scene');
+
+            addTableFoodToScene(clonedTable);
+        }
+
+        // =====================================================
+        // PROCEDURAL FOOD ITEMS FOR TABLE
+        // =====================================================
+
+        function addTableFoodToScene(tableObj) {
+            tableObj.updateWorldMatrix(true, true);
+            const bbox = new THREE.Box3().setFromObject(tableObj);
+            const tableTopY = bbox.max.y + 0.05;
+
+            // Centre of the table surface
+            const cx = (bbox.min.x + bbox.max.x) / 2;
+            const cz = (bbox.min.z + bbox.max.z) / 2;
+            // Half extents (with a small inset)
+            const hx = (bbox.max.x - bbox.min.x) / 2 - 1.5;
+            const hz = (bbox.max.z - bbox.min.z) / 2 - 1.5;
+
+            const foodGroup = new THREE.Group();
+            scene.add(foodGroup);
+
+            function mat(color, rough = 0.7, metal = 0.0) {
+                return new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal, side: THREE.FrontSide });
+            }
+
+            // Place a lathe bowl centred at (x,z), scaled by s, coloured c
+            function makeBowl(x, z, s, color) {
+                const geo = new THREE.LatheGeometry([
+                    new THREE.Vector2(0,0), new THREE.Vector2(0.9,0.12),
+                    new THREE.Vector2(1.2,0.5), new THREE.Vector2(1.1,0.95), new THREE.Vector2(0.7,1.1)
+                ], 24);
+                const m = new THREE.Mesh(geo, mat(color, 0.45, 0.1));
+                m.position.set(x, tableTopY, z);
+                m.scale.setScalar(s);
+                foodGroup.add(m);
+                return m;
+            }
+
+            // Natural item positions: (offsetX_fraction, offsetZ_fraction, rotationY)
+            // fractions are of half-extents so -1..1 maps to the table edge
+            // items placed as if someone laid them out loosely:
+            //   big centrepiece items cluster in the middle/back
+            //   plates/cups/napkins sit towards the near/side edges
+            const items = [
+                // label,   fx,     fz,    rotY
+                ['fruit',   -0.72,  -0.62,  0.2 ],
+                ['bread',    0.05,  -0.78,  0.0 ],
+                ['chips',    0.68,  -0.55, -0.15],
+                ['veggie',  -0.55,   0.05,  0.3 ],
+                ['salsa',    0.38,  -0.12,  0.0 ],
+                ['guac',     0.72,   0.22,  0.1 ],
+                ['cheese',  -0.08,   0.15,  0.35],
+                ['punch',   -0.62,   0.55, -0.2 ],
+                ['sandwich', 0.18,   0.55,  0.5 ],
+                ['pitcher',  0.62,  -0.78,  0.25],
+                ['candy',   -0.80,  -0.18,  0.1 ],
+                ['cookies', -0.35,   0.72,  0.0 ],
+                ['plates',   0.78,   0.72, -0.1 ],
+                ['cups',     0.42,   0.82,  0.0 ],
+                ['napkins', -0.22,   0.85,  0.15],
+                ['cupcakes', 0.78,  -0.25,  0.0 ],
+            ];
+
+            items.forEach(([label, fx, fz, rotY]) => {
+                const bx = cx + fx * hx;
+                const bz = cz + fz * hz;
+
+                if (label === 'fruit') {
+                    makeBowl(bx, bz, 0.72, 0xd4c4a8);
+                    const fc = [0xff3333, 0xffaa00, 0xffee22, 0x66cc00, 0xcc44aa, 0xff6622];
+                    [[0,0,0],[0.42,0,0.33],[-0.4,0,0.26],[0.2,0.26,-0.36],[-0.23,0.23,-0.28],[0.04,0.35,0.1]].forEach(([ox,oy,oz],i) => {
+                        const r = 0.2 + (i%3)*0.035;
+                        const f = new THREE.Mesh(new THREE.SphereGeometry(r,10,8), mat(fc[i%fc.length],0.55));
+                        f.position.set(bx+ox, tableTopY+0.5+oy, bz+oz);
+                        foodGroup.add(f);
+                        const s = new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.16,5), mat(0x228800,0.8));
+                        s.position.set(f.position.x, f.position.y+r+0.06, f.position.z);
+                        foodGroup.add(s);
+                    });
+                }
+
+                else if (label === 'bread') {
+                    const geo = new THREE.LatheGeometry([
+                        new THREE.Vector2(0,0),new THREE.Vector2(1.0,0.16),
+                        new THREE.Vector2(1.35,0.65),new THREE.Vector2(1.22,1.25),new THREE.Vector2(1.28,1.38)
+                    ], 32);
+                    const basket = new THREE.Mesh(geo, mat(0x8b6914,0.95));
+                    basket.position.set(bx, tableTopY, bz);
+                    basket.scale.setScalar(0.88);
+                    basket.rotation.y = rotY;
+                    foodGroup.add(basket);
+                    // inner bottom cap
+                    const breadCap = new THREE.Mesh(new THREE.CircleGeometry(0.88, 32), mat(0x8b6914,0.95));
+                    breadCap.rotation.x = -Math.PI / 2;
+                    breadCap.position.set(bx, tableTopY + 0.142, bz);
+                    foodGroup.add(breadCap);
+                    for (let b = 0; b < 4; b++) {
+                        const band = new THREE.Mesh(new THREE.TorusGeometry(1.2-b*0.02,0.038,5,32), mat(0x6b4f0a,0.98));
+                        band.rotation.x = Math.PI/2;
+                        band.position.set(bx, tableTopY+0.28*b+0.16, bz);
+                        band.scale.setScalar(0.88);
+                        foodGroup.add(band);
+                    }
+                    [[0,0],[0.5,0.35],[-0.46,0.3],[0.18,-0.46],[-0.13,0.5]].forEach(([ox,oz],i) => {
+                        const roll = new THREE.Mesh(new THREE.SphereGeometry(0.33,10,7), mat(0xc8832a,0.85));
+                        roll.scale.set(1,0.68,1);
+                        roll.position.set(bx+ox*0.78, tableTopY+0.32+(i>2?0.38:0), bz+oz*0.78);
+                        foodGroup.add(roll);
+                        const sc = new THREE.Mesh(new THREE.TorusGeometry(0.16,0.022,4,12,Math.PI), mat(0x9e5f10,0.9));
+                        sc.rotation.x = -Math.PI/2;
+                        sc.position.set(roll.position.x, roll.position.y+0.21, roll.position.z);
+                        foodGroup.add(sc);
+                    });
+                }
+
+                else if (label === 'chips') {
+                    const geo = new THREE.LatheGeometry([
+                        new THREE.Vector2(0,0),new THREE.Vector2(0.9,0.1),
+                        new THREE.Vector2(1.3,0.38),new THREE.Vector2(1.22,0.72)
+                    ], 24);
+                    const bowl = new THREE.Mesh(geo, mat(0xf5e6c8,0.5,0.05));
+                    bowl.position.set(bx, tableTopY, bz);
+                    bowl.scale.setScalar(0.75);
+                    foodGroup.add(bowl);
+                    // inner bottom cap (LatheGeometry bottom face has downward normals — add upward-facing cap)
+                    const chipCap = new THREE.Mesh(new THREE.CircleGeometry(0.68, 24), mat(0xf5e6c8,0.5,0.05));
+                    chipCap.rotation.x = -Math.PI / 2;
+                    chipCap.position.set(bx, tableTopY + 0.076, bz);
+                    foodGroup.add(chipCap);
+                    for (let i = 0; i < 14; i++) {
+                        const a = (i/14)*Math.PI*2 + (i%3)*0.18;
+                        const chipShape = new THREE.Shape();
+                        for (let v = 0; v < 5; v++) {
+                            const va = (v/5)*Math.PI*2;
+                            v===0 ? chipShape.moveTo(Math.cos(va)*(0.25+(v%2)*0.09), Math.sin(va)*(0.18+(v%2)*0.07))
+                                  : chipShape.lineTo(Math.cos(va)*(0.25+(v%2)*0.09), Math.sin(va)*(0.18+(v%2)*0.07));
+                        }
+                        chipShape.closePath();
+                        const chip = new THREE.Mesh(new THREE.ExtrudeGeometry(chipShape,{depth:0.032,bevelEnabled:false}), mat(0xf4c06e,0.8));
+                        const r = 0.28+(i%4)*0.1;
+                        chip.position.set(bx+Math.cos(a)*r, tableTopY+0.3+(i%3)*0.09, bz+Math.sin(a)*r);
+                        chip.rotation.set((i%3)*0.22-0.11, a, (i%2)*0.18);
+                        foodGroup.add(chip);
+                    }
+                }
+
+                else if (label === 'veggie') {
+                    makeBowl(bx, bz, 0.62, 0xe8e8e0);
+                    [0xff6644,0x55bb33,0xeeee44,0xff4444,0x66dd66,0xff8844,0xaa44cc].forEach((c,i) => {
+                        const a = (i/7)*Math.PI*2 + rotY;
+                        const v = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.11,0.55,8), mat(c,0.7));
+                        v.rotation.set(Math.PI/2+0.28, a, 0);
+                        v.position.set(bx+Math.cos(a)*0.42, tableTopY+0.5, bz+Math.sin(a)*0.42);
+                        foodGroup.add(v);
+                    });
+                }
+
+                else if (label === 'salsa') {
+                    makeBowl(bx, bz, 0.58, 0xe2d0c0);
+                    const surf = new THREE.Mesh(new THREE.CylinderGeometry(0.52,0.52,0.05,20), mat(0xcc2200,0.85));
+                    surf.position.set(bx, tableTopY+0.56, bz);
+                    foodGroup.add(surf);
+                    for (let s = 0; s < 6; s++) {
+                        const a = (s/6)*Math.PI*2;
+                        const chunk = new THREE.Mesh(new THREE.BoxGeometry(0.09,0.06,0.09), mat(s%2===0?0xff6644:0x55aa22,0.9));
+                        chunk.position.set(bx+Math.cos(a)*0.26, tableTopY+0.62, bz+Math.sin(a)*0.26);
+                        chunk.rotation.y = a;
+                        foodGroup.add(chunk);
+                    }
+                }
+
+                else if (label === 'guac') {
+                    makeBowl(bx, bz, 0.56, 0xe2d8c8);
+                    const gs = new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,0.055,20), mat(0x5a9e28,0.9));
+                    gs.position.set(bx, tableTopY+0.54, bz);
+                    foodGroup.add(gs);
+                    for (let g = 0; g < 5; g++) {
+                        const a = (g/5)*Math.PI*2;
+                        const sp = new THREE.Mesh(new THREE.SphereGeometry(0.05,4,4), mat(0x33aa22,0.9));
+                        sp.position.set(bx+Math.cos(a)*0.2, tableTopY+0.61, bz+Math.sin(a)*0.2);
+                        foodGroup.add(sp);
+                    }
+                }
+
+                else if (label === 'cheese') {
+                    const board = new THREE.Mesh(new THREE.BoxGeometry(2.4,0.09,1.6), mat(0xb8863c,0.85));
+                    board.position.set(bx, tableTopY+0.045, bz);
+                    board.rotation.y = rotY;
+                    foodGroup.add(board);
+                    [{x:-0.6,z:0,c:0xffd966,w:0.62,h:0.3,d:0.44},
+                     {x:0.28,z:-0.3,c:0xfff5cc,w:0.5,h:0.26,d:0.38},
+                     {x:0.72,z:0.28,c:0xe8c87a,w:0.46,h:0.34,d:0.35}
+                    ].forEach(({x,z,c,w,h,d}) => {
+                        const wedge = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat(c,0.6));
+                        wedge.position.set(bx+x, tableTopY+0.09+h/2, bz+z);
+                        wedge.rotation.y = rotY + (x+z)*0.3;
+                        foodGroup.add(wedge);
+                    });
+                    const kh = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.85,8), mat(0x4a2f1a,0.7));
+                    kh.rotation.z = Math.PI/2;
+                    kh.position.set(bx-0.45, tableTopY+0.17, bz+0.5);
+                    foodGroup.add(kh);
+                    const kb = new THREE.Mesh(new THREE.BoxGeometry(0.78,0.036,0.11), mat(0xcccccc,0.3,0.8));
+                    kb.position.set(bx+0.12, tableTopY+0.17, bz+0.5);
+                    foodGroup.add(kb);
+                }
+
+                else if (label === 'punch') {
+                    const geo = new THREE.LatheGeometry([
+                        new THREE.Vector2(0,0),new THREE.Vector2(1.0,0.18),
+                        new THREE.Vector2(1.45,0.72),new THREE.Vector2(1.48,1.3),new THREE.Vector2(1.4,1.44)
+                    ], 28);
+                    const pb = new THREE.Mesh(geo, mat(0xd8eeff,0.35,0.15));
+                    pb.position.set(bx, tableTopY, bz);
+                    pb.scale.setScalar(0.82);
+                    foodGroup.add(pb);
+                    const pl = new THREE.Mesh(new THREE.CylinderGeometry(1.08,1.08,0.07,28), mat(0xdd3366,0.4,0.05));
+                    pl.position.set(bx, tableTopY+1.06, bz);
+                    foodGroup.add(pl);
+                    for (let f = 0; f < 5; f++) {
+                        const a = (f/5)*Math.PI*2;
+                        const sl = new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.2,0.055,12), mat(0xff8833,0.6));
+                        sl.position.set(bx+Math.cos(a)*0.62, tableTopY+1.12, bz+Math.sin(a)*0.62);
+                        foodGroup.add(sl);
+                    }
+                    const lh = new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,2.0,8), mat(0xaaaaaa,0.4,0.6));
+                    lh.rotation.z = Math.PI/4;
+                    lh.position.set(bx+0.62, tableTopY+1.7, bz);
+                    foodGroup.add(lh);
+                }
+
+                else if (label === 'sandwich') {
+                    const tray = new THREE.Mesh(new THREE.CylinderGeometry(1.18,1.22,0.06,24), mat(0xeeeeee,0.55,0.15));
+                    tray.position.set(bx, tableTopY+0.03, bz);
+                    tray.rotation.y = rotY;
+                    foodGroup.add(tray);
+                    [[-0.5,-0.3],[0.5,-0.3],[0,-0.55],[0.55,0.2],[-0.55,0.2],[0,0.45]].forEach(([ox,oz],i) => {
+                        const sh = new THREE.Shape();
+                        sh.moveTo(0,0.3); sh.lineTo(-0.26,-0.18); sh.lineTo(0.26,-0.18); sh.closePath();
+                        const sand = new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:0.22,bevelEnabled:false}), mat(i%2===0?0xf5d980:0xd4a855,0.7));
+                        sand.position.set(bx+ox, tableTopY+0.06, bz+oz);
+                        sand.rotation.x = Math.PI/2;
+                        sand.rotation.z = rotY + (i/6)*Math.PI*2;
+                        foodGroup.add(sand);
+                    });
+                }
+
+                else if (label === 'pitcher') {
+                    const pitcherGeo = new THREE.LatheGeometry([
+                        new THREE.Vector2(0,0),new THREE.Vector2(0.5,0.05),
+                        new THREE.Vector2(0.55,0.8),new THREE.Vector2(0.6,1.5),
+                        new THREE.Vector2(0.5,1.7),new THREE.Vector2(0.45,1.85),new THREE.Vector2(0.52,2.0)
+                    ], 20);
+                    const pitcher = new THREE.Mesh(pitcherGeo, mat(0xccddff,0.1,0.05));
+                    pitcher.material.transparent = true;
+                    pitcher.material.opacity = 0.75;
+                    pitcher.position.set(bx, tableTopY, bz);
+                    pitcher.scale.setScalar(0.7);
+                    pitcher.rotation.y = rotY;
+                    foodGroup.add(pitcher);
+                    const water = new THREE.Mesh(new THREE.CylinderGeometry(0.36,0.36,0.06,20), mat(0x8899ff,0.2,0.05));
+                    water.position.set(bx, tableTopY+1.1, bz);
+                    foodGroup.add(water);
+                    const handle = new THREE.Mesh(new THREE.TorusGeometry(0.28,0.05,8,14,Math.PI), mat(0xaabbdd,0.3,0.1));
+                    handle.position.set(bx+0.48, tableTopY+0.9, bz);
+                    handle.rotation.y = Math.PI/2 + rotY;
+                    foodGroup.add(handle);
+                }
+
+                else if (label === 'candy') {
+                    makeBowl(bx, bz, 0.55, 0xf0e8d0);
+                    const candyColors = [0xff2244,0x2244ff,0x22cc44,0xffcc00,0xff6600,0xcc22cc];
+                    for (let i = 0; i < 16; i++) {
+                        const a = (i/16)*Math.PI*2 + (i%2)*0.2;
+                        const r = 0.15+(i%4)*0.12;
+                        const candy = new THREE.Mesh(new THREE.SphereGeometry(0.1,6,5), mat(candyColors[i%candyColors.length],0.4,0.2));
+                        candy.position.set(bx+Math.cos(a)*r, tableTopY+0.42+Math.floor(i/8)*0.2, bz+Math.sin(a)*r);
+                        foodGroup.add(candy);
+                    }
+                }
+
+                else if (label === 'cookies') {
+                    const tray = new THREE.Mesh(new THREE.CylinderGeometry(1.05,1.1,0.07,24), mat(0xdddddd,0.6,0.2));
+                    tray.position.set(bx, tableTopY+0.035, bz);
+                    foodGroup.add(tray);
+                    const cc = [0xc8732a,0xe8d5a0,0xaa3311,0xf0c060,0xddaa44,0xcc6622,0xf8e0b0];
+                    for (let i = 0; i < 7; i++) {
+                        const a = (i/7)*Math.PI*2;
+                        const r = i < 3 ? 0.3 : 0.65;
+                        const cookie = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,0.09,12), mat(cc[i],0.75));
+                        cookie.position.set(bx+Math.cos(a)*r, tableTopY+0.09, bz+Math.sin(a)*r);
+                        foodGroup.add(cookie);
+                        for (let d = 0; d < 3; d++) {
+                            const da = a + d*(Math.PI*2/3);
+                            const dot = new THREE.Mesh(new THREE.SphereGeometry(0.035,4,4), mat(0x3a1a00,0.9));
+                            dot.position.set(bx+Math.cos(a)*r+Math.cos(da)*0.1, tableTopY+0.14, bz+Math.sin(a)*r+Math.sin(da)*0.1);
+                            foodGroup.add(dot);
+                        }
+                    }
+                }
+
+                else if (label === 'plates') {
+                    const pc = [0xfafafa,0xf5f5f0,0xffffff];
+                    for (let i = 0; i < 10; i++) {
+                        const p = new THREE.Mesh(new THREE.CylinderGeometry(0.98-i*0.004,1.02-i*0.004,0.052,24), mat(pc[i%pc.length],0.9));
+                        p.position.set(bx, tableTopY+0.052*i+0.026, bz);
+                        foodGroup.add(p);
+                    }
+                    const pr = new THREE.Mesh(new THREE.TorusGeometry(0.94,0.052,6,24), mat(0xeeeeee,0.9));
+                    pr.rotation.x = Math.PI/2;
+                    pr.position.set(bx, tableTopY+0.052*10+0.028, bz);
+                    foodGroup.add(pr);
+                }
+
+                else if (label === 'cups') {
+                    for (let i = 0; i < 7; i++) {
+                        const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.32+i*0.016,0.24+i*0.012,0.54,16,1,true), mat(i%2===0?0xffffff:0xddeeff,0.85));
+                        cup.position.set(bx, tableTopY+0.46*i+0.26, bz);
+                        foodGroup.add(cup);
+                    }
+                    const tr = new THREE.Mesh(new THREE.TorusGeometry(0.43,0.035,6,16), mat(0xdddddd,0.7));
+                    tr.rotation.x = Math.PI/2;
+                    tr.position.set(bx, tableTopY+0.46*7+0.5, bz);
+                    foodGroup.add(tr);
+                }
+
+                else if (label === 'napkins') {
+                    for (let n = 0; n < 14; n++) {
+                        const nap = new THREE.Mesh(new THREE.BoxGeometry(0.88,0.042,0.88), mat(0xfff8f0,0.95));
+                        nap.position.set(bx, tableTopY+0.042*n+0.021, bz);
+                        nap.rotation.y = rotY + (n%2)*0.055 - 0.027;
+                        foodGroup.add(nap);
+                    }
+                    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.46,0.065,5,20), mat(0xc8a055,0.6,0.3));
+                    ring.rotation.x = Math.PI/2;
+                    ring.position.set(bx, tableTopY+0.042*7, bz);
+                    foodGroup.add(ring);
+                }
+
+                else if (label === 'cupcakes') {
+                    const base = new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.15,0.08,24), mat(0xffffff,0.5,0.3));
+                    base.position.set(bx, tableTopY+0.04, bz);
+                    foodGroup.add(base);
+                    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,1.0,10), mat(0xcccccc,0.4,0.6));
+                    pole.position.set(bx, tableTopY+0.58, bz);
+                    foodGroup.add(pole);
+                    const top = new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.72,0.06,20), mat(0xffffff,0.5,0.3));
+                    top.position.set(bx, tableTopY+1.1, bz);
+                    foodGroup.add(top);
+                    const cakeCols = [0xff88aa,0x88aaff,0xffcc44,0xaa88ff,0x88ddaa,0xff7744];
+                    for (let i = 0; i < 6; i++) {
+                        const a = (i/6)*Math.PI*2;
+                        const cb = new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.22,0.26,10), mat(0xf5e6c8,0.8));
+                        cb.position.set(bx+Math.cos(a)*0.72, tableTopY+0.22, bz+Math.sin(a)*0.72);
+                        foodGroup.add(cb);
+                        const fr = new THREE.Mesh(new THREE.SphereGeometry(0.2,8,6), mat(cakeCols[i],0.6));
+                        fr.scale.set(1,0.7,1);
+                        fr.position.set(bx+Math.cos(a)*0.72, tableTopY+0.42, bz+Math.sin(a)*0.72);
+                        foodGroup.add(fr);
+                    }
+                    for (let i = 0; i < 4; i++) {
+                        const a = (i/4)*Math.PI*2 + 0.4;
+                        const cb = new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.2,0.22,10), mat(0xf5e6c8,0.8));
+                        cb.position.set(bx+Math.cos(a)*0.42, tableTopY+1.22, bz+Math.sin(a)*0.42);
+                        foodGroup.add(cb);
+                        const fr = new THREE.Mesh(new THREE.SphereGeometry(0.18,8,6), mat(cakeCols[(i+3)%6],0.6));
+                        fr.scale.set(1,0.7,1);
+                        fr.position.set(bx+Math.cos(a)*0.42, tableTopY+1.4, bz+Math.sin(a)*0.42);
+                        foodGroup.add(fr);
+                    }
+                }
+            });
+
+            console.log('Added procedural food items to table');
         }
 
         function addSofaToScene() {
@@ -1806,7 +2188,7 @@
         }
 
         function addSqPedestalToScene() {
-            makePedestal(-40, -4, 7,  4, 10, 9);
+            makePedestal(-40, -1, 7,  5, 7, 9);
             console.log('Added sqPedestal to scene');
         }
 
