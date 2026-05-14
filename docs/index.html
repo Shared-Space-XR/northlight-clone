@@ -2835,6 +2835,13 @@
                                 const h = item.height || w / aspect;
                                 plane.geometry.dispose();
                                 plane.geometry = new THREE.PlaneGeometry(w, h);
+
+                                // Apply texture settings for crisp, full-resolution appearance
+                                tex.magFilter = THREE.LinearFilter;
+                                tex.minFilter = THREE.LinearMipmapLinearFilter;
+                                tex.colorSpace = THREE.SRGBColorSpace;
+                                tex.anisotropy = renderer.capabilities.maxAnisotropy;
+
                                 material.map = tex;
                                 material.needsUpdate = true;
 
