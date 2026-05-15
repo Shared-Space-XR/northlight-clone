@@ -455,7 +455,8 @@
         const ground = new THREE.Mesh(groundGeometry, groundMaterial);
         ground.rotation.x = -Math.PI / 2;
         ground.position.set(-1, -1.8, -49.4);
-        ground.receiveShadow = true;
+        ground.castShadow = true;  // Ground casts shadows on itself
+        ground.receiveShadow = true;  // Ground receives shadows from other objects
         scene.add(ground);
 
         // Add sky blue box
@@ -1249,7 +1250,7 @@
         }
 
         // Convert all meshes in a GLB clone to MeshBasicMaterial preserving original map/color
-        function applyGLBMaterials(object) {
+        function applyGLBMaterials(object, flag) {
             object.traverse((child) => {
                 if (child.isMesh && child.material) {
                     const mats = Array.isArray(child.material) ? child.material : [child.material];
@@ -1259,6 +1260,12 @@
                         side: THREE.DoubleSide
                     }));
                     child.material = Array.isArray(child.material) ? basics : basics[0];
+                    if(flag === false) {
+                        return;
+                    }
+                    child.castShadow = true;  // Enable shadow casting
+                    child.receiveShadow = true;  // Enable shadow receiving
+                    
                 }
             });
         }
@@ -1268,6 +1275,8 @@
             object.traverse((child) => {
                 if (child.isMesh) {
                     child.material = pedestalMaterial;
+                    child.castShadow = true;  // Enable shadow casting
+                    child.receiveShadow = true;  // Enable shadow receiving
                 }
             });
         }
@@ -2586,6 +2595,8 @@
             const imageGroup = new THREE.Group();
             const material = new THREE.MeshStandardMaterial({ transparent: true, alphaTest: 0.01, metalness: 0.1, roughness: 0.8 });
             const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
+           // plane.castShadow = true;  // Enable shadow casting
+           // plane.receiveShadow = true;  // Enable shadow receiving
             imageGroup.add(plane);
 
             new THREE.TextureLoader().load('shows/' + showTitle + '/' + item.src, (tex) => {
@@ -2623,6 +2634,8 @@
                     ].forEach(({ bw, bh, bx, by }) => {
                         const bar = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, d), frameMat);
                         bar.position.set(bx, by, zo);
+                        bar.castShadow = true;  // Enable shadow casting on frame
+                        bar.receiveShadow = true;  // Enable shadow receiving on frame
                         imageGroup.add(bar);
                     });
                 }
@@ -2641,7 +2654,7 @@
             gltfLoader.load('shows/' + showTitle + '/' + item.src, (gltf) => {
                 const model = gltf.scene;
                 model.scale.set(item.scale.x, item.scale.y, item.scale.z);
-                applyGLBMaterials(model);
+                applyGLBMaterials(model, false);
                 positionOnWall(model, item);
                 scene.add(model);
                 addItemLight(model);
