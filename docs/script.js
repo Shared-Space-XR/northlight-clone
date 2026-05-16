@@ -463,11 +463,11 @@
         ground.receiveShadow = true;  // Ground receives shadows from other objects
         scene.add(ground);
 
-        // Add sky blue box
-        const boxGeometry = new THREE.BoxGeometry(34, 3, 15);
-        const boxMaterial = new THREE.MeshBasicMaterial({ color: 0xb0c4de });
-        const box = new THREE.Mesh(boxGeometry, boxMaterial);
-        box.position.set(-28.5, -3, 40.5);
+        // Add sky blue box — fog:false + same color as skyMat so tone-mapping output matches
+        const boxGeometry = new THREE.BoxGeometry(32.5, 2, 11);
+        const boxMat = new THREE.MeshBasicMaterial({ color: 0xb0c4de, fog: false, side: THREE.FrontSide });
+        const box = new THREE.Mesh(boxGeometry, boxMat);
+        box.position.set(-27.5, -2, 38.5);
         scene.add(box);
 
         // =====================================================
