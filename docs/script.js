@@ -986,89 +986,6 @@
             side: THREE.DoubleSide
         });
         
-        // Create procedural crumpled fabric texture
-        function createCrumpledFabricTexture() {
-            const canvas = document.createElement('canvas');
-            canvas.width = 512;
-            canvas.height = 512;
-            const ctx = canvas.getContext('2d');
-            
-            // Base colors from the texture
-            const mainColor = '#6edeff';      // Cyan main color
-            const subColor = '#0d0dde';        // Dark blue sub color
-            const bgColor = '#000700';         // Very dark green background
-            
-            // Fill with background
-            ctx.fillStyle = bgColor;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Create crumpled fabric effect using noise-like pattern
-            const scale = 2;
-            
-            // Create wrinkle patterns
-            for (let i = 0; i < 100; i++) {
-                const x = Math.random() * canvas.width;
-                const y = Math.random() * canvas.height;
-                const width = Math.random() * 60 * scale + 20 * scale;
-                const height = Math.random() * 40 * scale + 15 * scale;
-                const angle = Math.random() * Math.PI;
-                
-                ctx.save();
-                ctx.translate(x, y);
-                ctx.rotate(angle);
-                
-                // Draw wrinkles with sub color
-                ctx.strokeStyle = subColor;
-                ctx.lineWidth = Math.random() * 2 + 0.5;
-                ctx.globalAlpha = Math.random() * 0.5 + 0.3;
-                ctx.beginPath();
-                ctx.ellipse(0, 0, width, height, 0, 0, Math.PI * 2);
-                ctx.stroke();
-                
-                ctx.restore();
-            }
-            
-            // Add main fabric color with crumpled effect
-            for (let i = 0; i < 50; i++) {
-                const x = Math.random() * canvas.width;
-                const y = Math.random() * canvas.height;
-                const radius = Math.random() * 40 * scale + 10 * scale;
-                
-                const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
-                gradient.addColorStop(0, mainColor);
-                gradient.addColorStop(0.7, 'rgba(110, 222, 255, 0.5)');
-                gradient.addColorStop(1, bgColor);
-                
-                ctx.fillStyle = gradient;
-                ctx.globalAlpha = 0.6;
-                ctx.beginPath();
-                ctx.arc(x, y, radius, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            
-            // Add fabric texture grain
-            for (let i = 0; i < 2000; i++) {
-                const x = Math.random() * canvas.width;
-                const y = Math.random() * canvas.height;
-                const brightness = Math.random();
-                ctx.globalAlpha = brightness * 0.3;
-                
-                if (brightness > 0.5) {
-                    ctx.fillStyle = mainColor;
-                } else {
-                    ctx.fillStyle = subColor;
-                }
-                
-                ctx.fillRect(x, y, Math.random() * 1 + 0.5, Math.random() * 1 + 0.5);
-            }
-            
-            ctx.globalAlpha = 1.0;
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.magFilter = THREE.LinearFilter;
-            texture.minFilter = THREE.LinearMipmapLinearFilter;
-            return texture;
-        }
-        
         const pedestalMaterial = new THREE.MeshStandardMaterial({
             map: pedestalTexture,
             color: 0xffffff,
@@ -1975,32 +1892,6 @@
         // WALL VISUALIZATION FOR DEBUGGING
         // =====================================================
         
-        function visualizeWalls(model) {
-            wallVisuals.clear();
-            
-            model.traverse((child) => {
-                if (child.isMesh) {
-                    const bbox = new THREE.Box3().setFromObject(child);
-                    const size = bbox.getSize(new THREE.Vector3());
-                    const center = bbox.getCenter(new THREE.Vector3());
-                    
-                    // Detect walls - tall structures
-                    if (size.y > 5 && (size.x > 1 || size.z > 1)) {
-                        // Draw red wireframe box around wall
-                        const wireframeGeom = new THREE.BoxGeometry(size.x, size.y, size.z);
-                        const wireframeMat = new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 2 });
-                        const edges = new THREE.EdgesGeometry(wireframeGeom);
-                        const wireframe = new THREE.LineSegments(edges, wireframeMat);
-                        
-                        wireframe.position.copy(center);
-                        wallVisuals.add(wireframe);
-                        
-                        console.log('Visualizing wall:', child.name, 'Size:', size, 'Center:', center);
-                    }
-                }
-            });
-        }
-
         // =====================================================
         // DEBUG MODE - Labels for walls, doors, windows
         // =====================================================
