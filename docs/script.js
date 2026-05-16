@@ -6,11 +6,11 @@
 
         // Scene setup
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x87CEEB); // Sky blue
+        scene.background = new THREE.Color(0xb0c4de); // Matches fog colour for seamless horizon
         scene.fog = new THREE.Fog(0xb0c4de, 150, 600);  // Atmospheric fog for depth
 
         // Camera
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.5, 700); // near 0.5 = better Z precision; far 700 = fog ends at 600
         camera.position.set(0, 5.2, 30); 
         
  
@@ -714,7 +714,7 @@
         // wallpaperMaterial created without map; texture generated after first paint
         const wallpaperMaterial = new THREE.MeshStandardMaterial({
             color: 0xffffff,
-            roughness: 0.1,  // Reduced for smoother walls (from 0.0)
+            roughness: 0.8,  // Reduced for smoother walls (from 0.0)
             metalness: 0.0,
             side: THREE.DoubleSide
         });
@@ -2146,22 +2146,21 @@
                 // Accumulate raw (unrounded) deltas — flushed each rAF to avoid jitter
                 pendingDX += event.movementX;
                 pendingDY += event.movementY;
+                needsRender = true;
             } else {
                 // Explore mode: rotate by default, shift+drag to pan
                 if (event.buttons === 1) {
-                    const deltaMove = new THREE.Vector2(
-                        event.clientX - lastExploreMousePos.x,
-                        event.clientY - lastExploreMousePos.y
-                    );
+                    const dx = event.clientX - lastExploreMousePos.x;
+                    const dy = event.clientY - lastExploreMousePos.y;
                     
                     if (event.shiftKey) {
                         // Shift + drag - pan
-                        exploreCameraPan.x -= deltaMove.x * 0.02;
-                        exploreCameraPan.y += deltaMove.y * 0.02;
+                        exploreCameraPan.x -= dx * 0.02;
+                        exploreCameraPan.y += dy * 0.02;
                     } else {
                         // Default drag - rotate around object
-                        exploreRotation.x += deltaMove.y * 0.005;
-                        exploreRotation.y += deltaMove.x * 0.005;
+                        exploreRotation.x += dy * 0.005;
+                        exploreRotation.y += dx * 0.005;
                         // Restrict to top hemisphere (0 to ~90 degrees)
                         exploreRotation.x = Math.max(0, Math.min(1.4, exploreRotation.x));
                     }
@@ -2382,8 +2381,8 @@
                 
                 // Update camera rotation if turned
                 if (turned || moveStep !== 0) {
-                    const euler = new THREE.Euler(pitch, yaw, 0, 'YXZ');
-                    camera.quaternion.setFromEuler(euler);
+                    _euler.set(pitch, yaw, 0, 'YXZ');
+                    camera.quaternion.setFromEuler(_euler);
                 }
                 
                 // Keep camera at eye height
@@ -2423,8 +2422,11 @@
                     updateCamera(delta);
                 }
                 
-                // Always render in game mode (VR needs every frame)
-                renderer.render(scene, camera);
+                // Render only when something changed (or every frame in VR)
+                if (renderer.xr.isPresenting || needsRender) {
+                    needsRender = false;
+                    renderer.render(scene, camera);
+                }
             } else {
                 // Explore mode: only update camera and render if state changed
                 if (needsRender) {
@@ -2482,62 +2484,6 @@
 
         function addItemLight(object) {
             // No per-item spotlights - using gallery-wide lighting instead
-        }
-
-        function addGallerySpotlights() {
-            // Create multiple spotlights to illuminate the entire gallery building
-            const roofHeight = 24;
-            const spotlightConfig = [
-                // Front (entrance area z=45)
-                { x: -30, z: 45, targetX: -30, targetZ: 0 },
-                { x: 0, z: 45, targetX: 0, targetZ: 0 },
-                { x: 30, z: 45, targetX: 30, targetZ: 0 },
-                
-                // Middle zone spotlights targeting center
-                { x: -35, z: 25, targetX: -20, targetZ: -5 },
-                { x: 35, z: 25, targetX: 20, targetZ: -5 },
-                
-                // Back zone spotlights targeting deep interior
-                { x: -30, z: -25, targetX: -30, targetZ: -15 },
-                { x: 0, z: -25, targetX: 0, targetZ: -15 },
-                { x: 30, z: -25, targetX: 30, targetZ: -15 },
-                
-                // Side walls
-                { x: -30, z: -45, targetX: -30, targetZ: 0 },
-                { x: 0, z: -45, targetX: 0, targetZ: 0 },
-                { x: 30, z: -45, targetX: 30, targetZ: 0 },
-                
-                // East wall
-                { x: 50, z: -15, targetX: 0, targetZ: -15 },
-                { x: 50, z: 0, targetX: 0, targetZ: 0 },
-                { x: 50, z: 15, targetX: 0, targetZ: 15 },
-                
-                // West wall
-                { x: -50, z: -15, targetX: 0, targetZ: -15 },
-                { x: -50, z: 0, targetX: 0, targetZ: 0 },
-                { x: -50, z: 15, targetX: 0, targetZ: 15 }
-            ];
-            
-            spotlightConfig.forEach(config => {
-                const spotlight = new THREE.SpotLight(0xffffff, 80.0, 300, Math.PI / 4, 0.3, 1.0);
-                spotlight.position.set(config.x, roofHeight, config.z);
-                spotlight.target.position.set(config.targetX, 5, config.targetZ);
-                spotlight.castShadow = false; // Disable shadows to reduce texture unit usage
-                
-                scene.add(spotlight);
-                scene.add(spotlight.target);
-                
-                // Add visible bulb for debugging
-                const bulbGeom = new THREE.SphereGeometry(0.4, 8, 8);
-                const bulbMat = new THREE.MeshBasicMaterial({ color: 0xffff00, emissive: 0xffff00 });
-                const bulb = new THREE.Mesh(bulbGeom, bulbMat);
-                bulb.position.copy(spotlight.position);
-                bulb.visible = false;
-                scene.add(bulb);
-                itemLightBulbs.push(bulb);
-            });
-            
-            console.log('Added', spotlightConfig.length, 'gallery spotlights');
         }
 
         function getWallMesh(wallName) {
