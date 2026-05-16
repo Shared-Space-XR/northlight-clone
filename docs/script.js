@@ -639,9 +639,7 @@
                 console.error('GLTFExporter error:', err);
             }, { binary: true });
         }
-       // setTimeout(() => {
-       //downloadRoofGLB();
-       // }, 3000);
+        //setTimeout(() => { downloadRoofGLB(); }, 3000);
 
         // =====================================================
         // LIGHTING CONFIGURATION & SETUP
@@ -650,11 +648,11 @@
         let ambientLight, hemiLight, directionalLight, fillLight, frontFillLight, backFillLight;
         
         const lightingConfig = {
-            ambient: { color: 0xffffff, intensity: 1.0 },  // Reduced from 1.2
-            hemisphere: { sky: 0xfff8f0, ground: 0x404040, intensity: 1.1 },  // Increased from 1.0
+            ambient: { color: 0xffffff, intensity: 0.5 },  // Reduced from 1.2
+            hemisphere: { sky: 0xfff8f0, ground: 0x404040, intensity: 1 },  // Increased from 1.0
             directional: {
                 color: 0xfff8f0,
-                intensity: 1.6,  // Reduced from 1.8 for subtlety
+                intensity: 1,  // Reduced from 1.8 for subtlety
                 position: [50, 80, 50],
                 shadow: { mapSize: 1024, left: -100, right: 100, top: 100, bottom: -100 }  // Reduced from 2048 for performance
             },
