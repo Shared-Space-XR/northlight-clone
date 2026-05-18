@@ -16,7 +16,11 @@
 */
         // Camera
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.5, 700); // near 0.5 = better Z precision; far 700 = fog ends at 600
-        camera.position.set(0, 5.2, 30); 
+        camera.position.set(0, 5.2, 30);
+
+        // Audio listener — must be on camera for positional audio to work
+        const audioListener = new THREE.AudioListener();
+        camera.add(audioListener);
         
  
         
@@ -109,6 +113,7 @@
         let needsRender = true;
         let isLocked = false;
         let itemLightBulbs = []; // Track all light bulbs for visibility toggling
+        let positionalAudios = []; // Track positional audio sources for game/explore muting
         
         // UI Setup
         const gameModeBtn = document.getElementById('gameModeBtn');
@@ -128,6 +133,11 @@
             // Toggle light bulb visibility based on mode
             itemLightBulbs.forEach(bulb => {
                 bulb.visible = (mode === 'game');
+            });
+
+            // Toggle positional audio: audible in game mode, silent in explore mode
+            positionalAudios.forEach(pa => {
+                pa.setVolume(mode === 'game' ? 1 : 0);
             });
             
             if (mode === 'game') {
@@ -2300,6 +2310,45 @@
             }
         }
 
+        // =====================================================
+        // AUDIO OCCLUSION — raycast through wallColliders each 6 frames
+        // =====================================================
+        let _occlusionTick = 0;
+        const _rayOccl = new THREE.Ray();
+        const _hitOccl = new THREE.Vector3();
+        const _toSound = new THREE.Vector3();
+
+        function updateAudioOcclusion() {
+            if (positionalAudios.length === 0 || wallColliders.length === 0) return;
+            if (++_occlusionTick % 6 !== 0) return;  // Only check every 6 frames
+
+            const camPos = camera.position;
+            positionalAudios.forEach(sound => {
+                sound.getWorldPosition(_toSound);
+                const dist = camPos.distanceTo(_toSound);
+                _rayOccl.origin.copy(camPos);
+                _rayOccl.direction.subVectors(_toSound, camPos).normalize();
+
+                let wallCount = 0;
+                for (const box of wallColliders) {
+                    if (_rayOccl.intersectBox(box, _hitOccl)) {
+                        // Only count walls between camera and source
+                        if (camPos.distanceTo(_hitOccl) < dist) wallCount++;
+                    }
+                }
+
+                // Each wall halves volume (0.5^n) and narrows low-pass by 1.5 octaves
+                const vol = Math.pow(0.5, wallCount);
+                const freq = wallCount > 0 ? Math.max(300, 20000 / Math.pow(2, wallCount * 1.5)) : 20000;
+                sound.setVolume(vol);
+                if (sound._wallFilter) {
+                    sound._wallFilter.frequency.setTargetAtTime(
+                        freq, audioListener.context.currentTime, 0.08
+                    );
+                }
+            });
+        }
+
         function animate() {
             const time = performance.now();
             const delta = (time - prevTime) / 1000;
@@ -2325,6 +2374,8 @@
                     needsRender = false;
                     renderer.render(scene, camera);
                 }
+
+                updateAudioOcclusion();  // Raycast walls every 6 frames to adjust volume/filter
             } else {
                 // Explore mode: only update camera and render if state changed
                 if (needsRender) {
@@ -2392,10 +2443,11 @@
         }
 
         function positionOnWall(object, item) {
+            const DEG2RAD = Math.PI / 180;
             if (item.wall === 'none' || !item.wall) {
                 // Direct positioning (e.g., on floor)
                 object.position.set(item.position.x, item.position.y, item.position.z);
-                object.rotation.set(item.rotation.x * 180 / Math.PI, item.rotation.y * 180 / Math.PI, item.rotation.z * 180 / Math.PI);
+                object.rotation.set(item.rotation.x * DEG2RAD, item.rotation.y * DEG2RAD, item.rotation.z * DEG2RAD);
                 return;
             }
 
@@ -2403,7 +2455,7 @@
             if (!wallMesh) {
                 console.warn('Wall not found:', item.wall);
                 object.position.set(item.position.x, item.position.y, item.position.z);
-                object.rotation.set(item.rotation.x * 180 / Math.PI, item.rotation.y * 180 / Math.PI, item.rotation.z * 180 / Math.PI);
+                object.rotation.set(item.rotation.x * DEG2RAD, item.rotation.y * DEG2RAD, item.rotation.z * DEG2RAD);
                 return;
             }
 
@@ -2423,9 +2475,9 @@
                 object.rotation.y = inwardSign > 0 ? 0 : Math.PI;
             }
             
-            object.rotation.x += item.rotation.x * 180 / Math.PI; // Convert from degrees to radians
-            object.rotation.y += item.rotation.y * 180 / Math.PI; // Convert from degrees to radians
-            object.rotation.z += item.rotation.z * 180 / Math.PI; // Convert from degrees to radians
+            object.rotation.x += item.rotation.x * DEG2RAD;
+            object.rotation.y += item.rotation.y * DEG2RAD;
+            object.rotation.z += item.rotation.z * DEG2RAD;
 
             const surfaceOffset = 0.1;
             object.position.set(
@@ -2508,6 +2560,75 @@
             });
         }
 
+        function addVideoToScene(item, showTitle) {
+            const video = document.createElement('video');
+            video.src = 'shows/' + showTitle + '/' + item.src;
+            video.crossOrigin = 'anonymous';
+            video.loop = true;
+            video.muted = false;  // Audio routed through Web Audio API
+            video.playsInline = true;
+            video.autoplay = true;
+
+            // Resume AudioContext on first user interaction (browser autoplay policy)
+            const resumeCtx = () => {
+                if (audioListener.context.state === 'suspended') {
+                    audioListener.context.resume();
+                }
+                video.play();
+                document.removeEventListener('click', resumeCtx);
+                document.removeEventListener('keydown', resumeCtx);
+            };
+            document.addEventListener('click', resumeCtx, { once: true });
+            document.addEventListener('keydown', resumeCtx, { once: true });
+            video.play().catch(() => {});  // Silent fail until user gesture
+
+            const videoTex = new THREE.VideoTexture(video);
+            videoTex.colorSpace = THREE.SRGBColorSpace;
+
+            const w = item.width || 16;
+            const h = item.height || 9;
+            const plane = new THREE.Mesh(
+                new THREE.PlaneGeometry(w, h),
+                new THREE.MeshBasicMaterial({ map: videoTex })
+            );
+            if (item.scale) {
+                plane.scale.set(item.scale.x, item.scale.y, item.scale.z);
+            }
+
+            // Positional audio — attaches to the plane so volume falls off with distance
+            const sound = new THREE.PositionalAudio(audioListener);
+            // Low-pass filter — cutoff drops when walls are between listener and source
+            const wallFilter = audioListener.context.createBiquadFilter();
+            wallFilter.type = 'lowpass';
+            wallFilter.frequency.value = 20000; // starts fully open
+            wallFilter.Q.value = 0.5;
+            sound.setFilter(wallFilter);
+            sound._wallFilter = wallFilter;
+            sound.setMediaElementSource(video);
+            sound.setRefDistance(10);    // Full volume within 10 units
+            sound.setRolloffFactor(2);   // How fast it fades beyond refDistance
+            sound.setMaxDistance(80);    // Inaudible beyond 80 units
+            sound.setVolume(currentMode === 'game' ? 1 : 0);
+            plane.add(sound);
+            positionalAudios.push(sound);
+
+            positionOnWall(plane, item);
+            scene.add(plane);
+
+            // Keep render-on-demand in sync with video frames
+            video.addEventListener('play', () => {
+                function tick() {
+                    if (!video.paused && !video.ended) {
+                        needsRender = true;
+                        requestAnimationFrame(tick);
+                    }
+                }
+                tick();
+            });
+
+            console.log('Added video to scene:', item.src);
+        }
+
         function loadShow() {
             var hash = window.location.hash.replace('#', '');
             if (hash.length == 0) {
@@ -2530,6 +2651,8 @@
                             addImageToScene(item, showTitle);
                         } else if (item.type === 'model') {
                             addModelToScene(item, showTitle);
+                        } else if (item.type === 'video') {
+                            addVideoToScene(item, showTitle);
                         }
                     });
                 })
