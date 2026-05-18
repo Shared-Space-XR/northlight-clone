@@ -137,7 +137,7 @@
 
             // Toggle positional audio: audible in game mode, silent in explore mode
             positionalAudios.forEach(pa => {
-                pa.setVolume(mode === 'game' ? 1 : 0);
+                pa.setVolume(mode === 'game' ? (pa._baseVolume ?? 1) : 0);
             });
             
             if (mode === 'game') {
@@ -2338,7 +2338,8 @@
                 }
 
                 // Each wall halves volume (0.5^n) and narrows low-pass by 1.5 octaves
-                const vol = Math.pow(0.5, wallCount);
+                const baseVol = sound._baseVolume ?? 1;
+                const vol = baseVol * Math.pow(0.5, wallCount);
                 const freq = wallCount > 0 ? Math.max(300, 20000 / Math.pow(2, wallCount * 1.5)) : 20000;
                 sound.setVolume(vol);
                 if (sound._wallFilter) {
@@ -2512,6 +2513,7 @@
                 tex.anisotropy = renderer.capabilities.maxAnisotropy;
 
                 material.map = tex;
+                material.opacity = (item.opacity !== undefined) ? item.opacity : 1;
                 material.needsUpdate = true;
 
                 // Add frame if specified and not "none"
@@ -2551,6 +2553,14 @@
                 const model = gltf.scene;
                 model.scale.set(item.scale.x, item.scale.y, item.scale.z);
                 applyGLBMaterials(model, false);
+                if (item.opacity !== undefined && item.opacity < 1) {
+                    model.traverse(child => {
+                        if (child.isMesh && child.material) {
+                            const mats = Array.isArray(child.material) ? child.material : [child.material];
+                            mats.forEach(m => { m.transparent = true; m.opacity = item.opacity; m.needsUpdate = true; });
+                        }
+                    });
+                }
                 positionOnWall(model, item);
                 scene.add(model);
                 addItemLight(model);
@@ -2589,11 +2599,17 @@
             const h = item.height || 9;
             const plane = new THREE.Mesh(
                 new THREE.PlaneGeometry(w, h),
-                new THREE.MeshBasicMaterial({ map: videoTex })
+                new THREE.MeshBasicMaterial({
+                    map: videoTex,
+                    side: THREE.DoubleSide,
+                    transparent: (item.opacity !== undefined && item.opacity < 1),
+                    opacity: (item.opacity !== undefined) ? item.opacity : 1
+                })
             );
             if (item.scale) {
                 plane.scale.set(item.scale.x, item.scale.y, item.scale.z);
             }
+            video.volume = (item.volume !== undefined) ? Math.min(1, Math.max(0, item.volume)) : 1;
 
             // Positional audio — attaches to the plane so volume falls off with distance
             const sound = new THREE.PositionalAudio(audioListener);
@@ -2608,7 +2624,8 @@
             sound.setRefDistance(10);    // Full volume within 10 units
             sound.setRolloffFactor(2);   // How fast it fades beyond refDistance
             sound.setMaxDistance(80);    // Inaudible beyond 80 units
-            sound.setVolume(currentMode === 'game' ? 1 : 0);
+            sound._baseVolume = (item.volume !== undefined) ? Math.min(1, Math.max(0, item.volume)) : 1;
+            sound.setVolume(currentMode === 'game' ? sound._baseVolume : 0);
             plane.add(sound);
             positionalAudios.push(sound);
 
