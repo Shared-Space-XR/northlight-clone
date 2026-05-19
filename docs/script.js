@@ -2693,6 +2693,125 @@
             console.log('Added video to scene:', item.src);
         }
 
+        function addTvToScene(item, showTitle) {
+            // ── Video element ─────────────────────────────────────────────────
+            const video = document.createElement('video');
+            video.src = 'shows/' + showTitle + '/' + item.src;
+            video.crossOrigin = 'anonymous';
+            video.loop = true;
+            video.muted = false;
+            video.playsInline = true;
+            video.autoplay = true;
+
+            const resumeCtx = () => {
+                if (audioListener.context.state === 'suspended') audioListener.context.resume();
+                video.play();
+            };
+            document.addEventListener('click', resumeCtx, { once: true });
+            document.addEventListener('keydown', resumeCtx, { once: true });
+            video.play().catch(() => {});
+
+            const videoTex = new THREE.VideoTexture(video);
+            videoTex.colorSpace = THREE.SRGBColorSpace;
+
+            const vw = item.videoWidth  || 16;
+            const vh = item.videoHeight || 9;
+            const plane = new THREE.Mesh(
+                new THREE.PlaneGeometry(vw, vh),
+                new THREE.MeshBasicMaterial({
+                    map: videoTex,
+                    side: THREE.DoubleSide,
+                    transparent: (item.opacity !== undefined && item.opacity < 1),
+                    opacity: (item.opacity !== undefined) ? item.opacity : 1
+                })
+            );
+
+            video.volume = (item.volume !== undefined) ? Math.min(1, Math.max(0, item.volume)) : 1;
+
+            // Positional audio
+            const sound = new THREE.PositionalAudio(audioListener);
+            const wallFilter = audioListener.context.createBiquadFilter();
+            wallFilter.type = 'lowpass';
+            wallFilter.frequency.value = 20000;
+            wallFilter.Q.value = 0.5;
+            sound.setFilter(wallFilter);
+            sound._wallFilter = wallFilter;
+            sound.setMediaElementSource(video);
+            sound.setRefDistance(10);
+            sound.setRolloffFactor(2);
+            sound.setMaxDistance(80);
+            sound._baseVolume = (item.volume !== undefined) ? Math.min(1, Math.max(0, item.volume)) : 1;
+            sound.setVolume(currentMode === 'game' ? sound._baseVolume : 0);
+            plane.add(sound);
+            positionalAudios.push(sound);
+
+            // Distance-aware texture update (shared with addVideoToScene optimisation)
+            const vo = { video, texture: videoTex, plane, _distant: false };
+            videoObjects.push(vo);
+            if (typeof video.requestVideoFrameCallback === 'function') {
+                const scheduleVFC = () => {
+                    video.requestVideoFrameCallback(() => {
+                        if (!video.paused && !video.ended) {
+                            if (!vo._distant) { videoTex.needsUpdate = true; needsRender = true; }
+                            scheduleVFC();
+                        }
+                    });
+                };
+                video.addEventListener('play', scheduleVFC, { once: false });
+            }
+
+            // ── TV GLB ────────────────────────────────────────────────────────
+            // Always load the shared TV model; path is relative to the show folder.
+            gltfLoader.load('shows/' + showTitle + '/../../building/tv.glb', (gltf) => {
+                const model = gltf.scene;
+                model.scale.set(item.scale.x, item.scale.y, item.scale.z);
+                applyGLBMaterials(model, false);
+                positionOnWall(model, item);
+                scene.add(model);
+
+                // Derive the video plane world position: project the TV model's
+                // AABB onto its screen normal to find the front-face centre.
+                // positionOnWall orients the model so local +Z faces the gallery
+                // interior (the screen side).
+                model.updateMatrixWorld(true);
+                const bbox        = new THREE.Box3().setFromObject(model);
+                const bboxCenter  = bbox.getCenter(new THREE.Vector3());
+                const halfExtents = bbox.getSize(new THREE.Vector3()).multiplyScalar(0.5);
+                const screenNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(model.quaternion);
+                // Support for any wall orientation: project AABB half-extents onto normal.
+                const absN = new THREE.Vector3(
+                    Math.abs(screenNormal.x),
+                    Math.abs(screenNormal.y),
+                    Math.abs(screenNormal.z)
+                );
+                const halfDepth = halfExtents.dot(absN);
+                // Sit the video plane flush on the screen face with a tiny epsilon.
+                plane.position.copy(bboxCenter).addScaledVector(screenNormal, halfDepth + 0.05);
+                plane.quaternion.copy(model.quaternion);
+
+                // Apply optional per-item videoOffset (world-space x/y/z nudge)
+                // and videoRotation (x/y/z degrees added on top of the TV rotation).
+                // Use these in meta.json to correct the screen alignment for any TV.
+                const DEG2RAD = Math.PI / 180;
+                if (item.videoOffset) {
+                    plane.position.x += item.videoOffset.x || 0;
+                    plane.position.y += item.videoOffset.y || 0;
+                    plane.position.z += item.videoOffset.z || 0;
+                }
+                if (item.videoRotation) {
+                    plane.rotation.x += (item.videoRotation.x || 0) * DEG2RAD;
+                    plane.rotation.y += (item.videoRotation.y || 0) * DEG2RAD;
+                    plane.rotation.z += (item.videoRotation.z || 0) * DEG2RAD;
+                }
+
+                const vs = item.videoScale || 1;
+                plane.scale.setScalar(vs);
+
+                scene.add(plane);
+                console.log('Added TV to scene:', item.src);
+            }, undefined, err => console.error('TV model load error:', err));
+        }
+
         function loadShow() {
             var hash = window.location.hash.replace('#', '');
             if (hash.length == 0) {
@@ -2717,6 +2836,8 @@
                             addModelToScene(item, showTitle);
                         } else if (item.type === 'video') {
                             addVideoToScene(item, showTitle);
+                        } else if (item.type === 'tv') {
+                            addTvToScene(item, showTitle);
                         }
                     });
                 })

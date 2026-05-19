@@ -244,47 +244,52 @@
             }
         },
         {
-            "type": "model",
-            "src": "../../building/tv.glb",
-            "alt": "",
-            "wall": "Wall13",
-            "position": {
-                "x": 20,
-                "y": 0,
-                "z": -0.6
-            },
-            "rotation": {
-                "x": 2.5,
-                "y": 180,
-                "z": 0
-            },
-            "scale": {
-                "x": 10,
-                "y": 10,
-                "z": 10
-            }
-        },
-        {
-            "type": "video",
+            "type": "tv",
             "src": "water.mp4",
             "alt": "",
             "volume": 0.5,
             "wall": "Wall13",
             "position": {
                 "x": 20,
-                "y": 0.2,
-                "z": -0.84
+                "y": 0,
+                "z": -0.60
             },
             "rotation": {
-                "x": 2.5,
-                "y": 180,
+                "x": -2.5,
+                "y": 0,
                 "z": 0
             },
             "scale": {
-                "x": 0.62,
-                "y": 0.66,
-                "z": 0.64
-            }
+                "x": 17,
+                "y": 16,
+                "z": 10
+            },
+            "videoOffset": { "x": 0, "y": 0.2, "z": -1 },
+            "videoRotation": { "x": 0, "y": 180, "z": 0 }
+        },
+        {
+            "type": "tv",
+            "src": "calaboca.mp4",
+            "alt": "",
+            "volume": 0.5,
+            "wall": "Wall14",
+            "position": {
+                "x": 1,
+                "y": 0.1,
+                "z": 0
+            },
+            "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "scale": {
+                "x": 17,
+                "y": 16,
+                "z": 10
+            },
+            "videoOffset": { "x": 0, "y": 0, "z": 0 },
+            "videoRotation": { "x": 0, "y": 180, "z": 0 }
         },
         {
             "type": "video",
