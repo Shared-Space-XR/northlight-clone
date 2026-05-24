@@ -231,6 +231,9 @@
                 walkDebugGroup.visible = debugMode;
                 if (roofGroup) roofGroup.visible = true;
                 vrButton.style.display = '';
+                if (document.fullscreenEnabled && !document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(() => {});
+                }
                 needsRender = true;
             } else {
                 gameModeBtn.classList.remove('active');
@@ -251,6 +254,9 @@
                 walkDebugGroup.visible = false;
                 if (roofGroup) roofGroup.visible = false;
                 vrButton.style.display = 'none';
+                if (document.fullscreenElement) {
+                    document.exitFullscreen().catch(() => {});
+                }
                 needsRender = true;
             }
         }
@@ -2996,17 +3002,22 @@
                         });
                     } else if (frame === 'whiteboard') {
                         // Flat white panel with padding on all sides; image sits flush on front face
-                        material.roughness = 0.18;
-                        material.metalness = 0.4;
-                        material.needsUpdate = true;
-                        const pad  = Math.max(w, h) * 0.04;  // padding on each side
+                        // Use MeshBasicMaterial for the image so lighting never causes glare
+                        plane.material = new THREE.MeshBasicMaterial({
+                            map: material.map,
+                            transparent: material.transparent,
+                            alphaTest: material.alphaTest,
+                            opacity: material.opacity,
+                            side: THREE.DoubleSide
+                        });
+                        const pad  = 1;
                         const boxW = w + pad * 2;
                         const boxH = h + pad * 2;
                         const boxD = 100;
-                        const panelMat = new THREE.MeshStandardMaterial({ color: 0xf8f8f6, roughness: 0.82, metalness: 0.4 });
+                        const panelMat = new THREE.MeshStandardMaterial({ color: 0xf8f8f6, roughness: 0.18, metalness: 0.4 });
                         const panel = new THREE.Mesh(new THREE.BoxGeometry(boxW, boxH, boxD), panelMat);
                         panel.castShadow = true;
-                        panel.receiveShadow = true;
+                       // panel.receiveShadow = true;
                         panel.position.set(0, 0, -boxD / 2 - boxD * 0.05);
                         frameGroup.add(panel);
                     } else if (frame === 'aluminum') {
@@ -3076,7 +3087,9 @@
             positionOnWall(imageGroup, item);
             imageGroup.scale.set(item.scale.x, item.scale.y, item.scale.z);
             scene.add(imageGroup);
-            if (item.collider === true) addObjectCollider(imageGroup);
+            const _fds = Array.isArray(item.frames) ? item.frames : (item.frame || '').split(',').map(f => ({ type: f.trim() }));
+            const hasWhiteboard = _fds.some(fd => fd.type === 'whiteboard');
+            if (item.collider === true || hasWhiteboard) addObjectCollider(imageGroup);
             addItemLight(imageGroup);
             console.log('Added image to scene:', item.src);
         }

@@ -276,8 +276,8 @@
             "wall": "Wall21",
             "position": {
                 "x": 0,
-                "y": -1,
-                "z": 9
+                "y": 0,
+                "z": 11.5
             },
             "rotation": {
                 "x": 0,
@@ -287,11 +287,11 @@
             "scale": {
                 "x": 15,
                 "y": 12,
-                "z": 8
+                "z": 10
             },
-            "videoOffset": { "x": -0.02, "y": 0, "z": 0 },
-            "videoRotation": { "x": 0, "y": 180, "z": 0 },
-            "videoScale": { "x": 1, "y": 1, "z": 1 }
+            "videoOffset": { "x": 0, "y": 0, "z": 2 },
+            "videoRotation": { "x": 0, "y": 0, "z": 0 },
+            "videoScale": { "x": 1, "y": 0.7, "z": 1 }
         },
         {
             "type": "video",
@@ -318,17 +318,16 @@
         },
         {
             "type": "image",
-            "src": "mRoomImg3.png",
+            "src": "wall9-1.png",
             "frames": [
-                 { "type": "whiteboard" },
-                 { "type": "poster2", "offset": { "x": 0, "y": -5.5, "z": 0.5 } }
+                 { "type": "whiteboard" }
             ],
             "alt": "",
             "wall": "Wall9",
             "position": {
                 "x": 10,
                 "y": -7,
-                "z": 0.3
+                "z": 1
             },
             "rotation": {
                 "x": 0,
@@ -336,9 +335,84 @@
                 "z": 0
             },
             "scale": {
-                "x": 0.01,
-                "y": 0.01,
-                "z": 0.001
+                "x": 0.012,
+                "y": 0.012,
+                "z": 0.01
+            },
+            "collider": true
+        },
+        {
+            "type": "image",
+            "src": "wall9-2.png",
+            "frames": [
+                 { "type": "whiteboard" }
+            ],
+            "alt": "",
+            "wall": "Wall9",
+            "position": {
+                "x": -2,
+                "y": -2,
+                "z": 1
+            },
+            "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.007,
+                "y": 0.007,
+                "z": 0.01
+            },
+            "collider": true
+        },
+        {
+            "type": "image",
+            "src": "wall9-3.png",
+            "frames": [
+                 { "type": "whiteboard" }
+            ],
+            "alt": "",
+            "wall": "Wall9",
+            "position": {
+                "x": -7,
+                "y": -12,
+                "z": 1
+            },
+            "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.014,
+                "y": 0.014,
+                "z": 0.01
+            },
+            "collider": true
+        },
+        {
+            "type": "image",
+            "src": "wall9-4.png",
+            "frames": [
+                 { "type": "whiteboard" }
+            ],
+            "alt": "",
+            "wall": "Wall9",
+            "position": {
+                "x": -30,
+                "y": -7,
+                "z": 1
+            },
+            "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.014,
+                "y": 0.014,
+                "z": 0.01
             },
             "collider": true
         }
@@ -346,7 +420,7 @@
 "furniture": [
     {
         "type": "pedestal",
-        "name": "SqPedestal",
+            "id": "SqPedestal",
         "position": { "x": -40, "y": -3, "z": 7 },
         "size": { "w": 5, "h": 9, "d": 9 },
         "rotation": { "y": 0 },
@@ -354,6 +428,7 @@
     },
     {
         "type": "pedestal",
+        "id": "RectPedestal",
         "position": { "x": 24, "y": -3, "z": 12 },
         "size": { "w": 6, "h": 9, "d": 5 },
         "rotation": { "y": 0 },
@@ -361,15 +436,10 @@
     },
     {
         "type": "pedestal",
-        "position": { "x": -15, "y": -3, "z": -84 },
-        "size": { "w": 5, "h": 9, "d": 3 },
-        "rotation": { "y": 0 }
-    },
-    {
-        "type": "pedestal",
-        "position": { "x": -5, "y": -3, "z": -56 },
-        "size": { "w": 5, "h": 9, "d": 6 },
-        "rotation": { "y": 45 }
+        "id": "mRoomPedestal",
+        "position": { "x": -5, "y": -2, "z": -56 },
+        "size": { "w": 3.5, "h": 7, "d": 12 },
+        "rotation": { "y": 90 }
     },
     {
         "model": "table",
