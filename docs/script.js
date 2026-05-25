@@ -3000,6 +3000,23 @@
                             frameGroup.add(gltf.scene);
                             needsRender = true;
                         });
+                    } else if (frame === 'whiteborder') {
+                        // Thin flat white mat border around the image — no depth, no glare
+                        const pad = Math.max(w, h) * 0.015;
+                        const borderMat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+                        const zo = -0.5;
+                        [
+                            { bw: w + pad * 2, bh: pad, bx: 0,             by:  h / 2 + pad / 2 },
+                            { bw: w + pad * 2, bh: pad, bx: 0,             by: -h / 2 - pad / 2 },
+                            { bw: pad,         bh: h,   bx: -w / 2 - pad / 2, by: 0 },
+                            { bw: pad,         bh: h,   bx:  w / 2 + pad / 2, by: 0 },
+                        ].forEach(({ bw, bh, bx, by }) => {
+                            const bar = new THREE.Mesh(new THREE.PlaneGeometry(bw, bh), borderMat);
+                            bar.castShadow = true;
+                            bar.receiveShadow = true;
+                            bar.position.set(bx, by, zo);
+                            frameGroup.add(bar);
+                        });
                     } else if (frame === 'whiteboard') {
                         // Flat white panel with padding on all sides; image sits flush on front face
                         // Use MeshBasicMaterial for the image so lighting never causes glare
@@ -3010,6 +3027,9 @@
                             opacity: material.opacity,
                             side: THREE.DoubleSide
                         });
+                        plane.castShadow = true;
+                        plane.receiveShadow = true;
+
                         const pad  = 1;
                         const boxW = w + pad * 2;
                         const boxH = h + pad * 2;
@@ -3017,7 +3037,7 @@
                         const panelMat = new THREE.MeshStandardMaterial({ color: 0xf8f8f6, roughness: 0.18, metalness: 0.4 });
                         const panel = new THREE.Mesh(new THREE.BoxGeometry(boxW, boxH, boxD), panelMat);
                         panel.castShadow = true;
-                       // panel.receiveShadow = true;
+                        panel.receiveShadow = true;
                         panel.position.set(0, 0, -boxD / 2 - boxD * 0.05);
                         frameGroup.add(panel);
                     } else if (frame === 'aluminum') {

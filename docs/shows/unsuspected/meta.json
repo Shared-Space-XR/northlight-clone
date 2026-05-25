@@ -250,7 +250,7 @@
             "volume": 0.5,
             "wall": "Wall13",
             "position": {
-                "x": 20,
+                "x": 16,
                 "y": 0,
                 "z": -0.60
             },
@@ -350,7 +350,7 @@
             "alt": "",
             "wall": "Wall9",
             "position": {
-                "x": -3,
+                "x": -6,
                 "y": 0,
                 "z": 1
             },
@@ -375,7 +375,7 @@
             "alt": "",
             "wall": "Wall9",
             "position": {
-                "x": -9,
+                "x": -12,
                 "y": -10,
                 "z": 1
             },
@@ -400,7 +400,7 @@
             "alt": "",
             "wall": "Wall9",
             "position": {
-                "x": -30,
+                "x": -34,
                 "y": -10,
                 "z": 1
             },
@@ -415,6 +415,81 @@
                 "z": 0.01
             },
             "collider": true
+        },
+        {
+            "type": "image",
+            "src": "wall13-1.png",
+            "frames": [
+                 { "type": "whiteborder" }
+            ],
+            "alt": "",
+            "wall": "Wall13",
+            "position": {
+                "x": -14,
+                "y": -8,
+                "z": -0.2
+            },
+            "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.014,
+                "y": 0.014,
+                "z": 0.014
+            },
+            "collider": false
+        },
+        {
+            "type": "image",
+            "src": "wall13-2.png",
+            "frames": [
+                 { "type": "whiteborder" }
+            ],
+            "alt": "",
+            "wall": "Wall13",
+            "position": {
+                "x": -19,
+                "y": 0,
+                "z": -0.2
+            },
+            "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.014,
+                "y": 0.014,
+                "z": 0.014
+            },
+            "collider": false
+        },
+        {
+            "type": "image",
+            "src": "wall13-3.png",
+            "frames": [
+                 { "type": "whiteborder" }
+            ],
+            "alt": "",
+            "wall": "Wall13",
+            "position": {
+                "x": -6,
+                "y": 1,
+                "z": -0.2
+            },
+            "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.018,
+                "y": 0.018,
+                "z": 0.016
+            },
+            "collider": false
         }
     ],
 "furniture": [
