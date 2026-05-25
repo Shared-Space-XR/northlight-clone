@@ -241,7 +241,8 @@
                 "x": 12,
                 "y": 12,
                 "z": 12
-            }
+            },
+            "collider": true
         },
         {
             "type": "tv",
@@ -546,38 +547,6 @@
         "position": { "x": 21, "y": 1.9, "z": 39 },
         "rotation": { "x": 0, "y": 180, "z": 0 },
         "scale": { "x": 17, "y": 17, "z": 17 }
-    },
-    {
-        "model": "mSeat",
-        "position": { "x": 15, "y": 0.1, "z": -41 },
-        "rotation": { "x": 0, "y": 45, "z": 0 },
-        "scale": { "x": 12, "y": 12, "z": 12 }
-    },
-    {
-        "model": "mSeat",
-        "position": { "x": 11, "y": 0.1, "z": -45 },
-        "rotation": { "x": 0, "y": 225, "z": 0 },
-        "scale": { "x": 12, "y": 12, "z": 12 }
-    },
-    {
-        "model": "b1Seat",
-        "position": { "x": -25, "y": -0.1, "z": -115 },
-        "rotation": { "x": 0, "y": 45, "z": 0 },
-        "scale": { "x": 7, "y": 7, "z": 7 }
-    },
-    {
-        "model": "b2Seat",
-        "position": { "x": 20, "y": -0.1, "z": -115 },
-        "rotation": { "x": 0, "y": 225, "z": 0 },
-        "scale": { "x": 8, "y": 8, "z": 8 }
-    },
-    {
-        "model": "custom",
-        "src": "myModel.glb",
-        "position": { "x": 0, "y": 0, "z": -10 },
-        "rotation": { "x": 0, "y": 90, "z": 0 },
-        "scale": { "x": 5, "y": 5, "z": 5 },
-        "collider": false
     }
 ]
 

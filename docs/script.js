@@ -3129,6 +3129,7 @@
                 }
                 positionOnWall(model, item);
                 scene.add(model);
+                if (item.collider === true) addObjectCollider(model);
                 addItemLight(model);
                 console.log('Added model to scene:', item.src);
             }, undefined, error => {
