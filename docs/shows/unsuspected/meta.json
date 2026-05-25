@@ -257,7 +257,7 @@
             "rotation": {
                 "x": 0,
                 "y": 154,
-                "z": 0
+                "z": 2
             },
             "scale": {
                 "x": 21,
@@ -341,6 +341,50 @@
         },
         {
             "type": "image",
+            "src": "bRoom-l.png",
+            "frame": "aluminum",
+            "alt": "",
+            "wall": "Wall7",
+            "position": {
+                "x": 0.2,
+                "y": -6,
+                "z": 5
+            },
+            "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.012,
+                "y": 0.012,
+                "z": 0.012
+            }
+        },
+        {
+            "type": "image",
+            "src": "bRoom-r.png",
+            "frame": "aluminum",
+            "alt": "",
+            "wall": "Wall7",
+            "position": {
+                "x": 0.2,
+                "y": -6,
+                "z": -12
+            },
+            "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "scale": {
+                "x": 0.012,
+                "y": 0.012,
+                "z": 0.012
+            }
+        },
+        {
+            "type": "image",
             "src": "wall9-1.png",
             "frames": [
                  { "type": "whiteboard" }
@@ -360,7 +404,7 @@
             "scale": {
                 "x": 0.012,
                 "y": 0.012,
-                "z": 0.01
+                "z": 0.0012
             },
             "collider": true
         },
