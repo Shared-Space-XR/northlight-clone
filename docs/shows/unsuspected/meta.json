@@ -229,18 +229,18 @@
             "wall": "none",
             "position": {
                 "x": 10,
-                "y": 3,
+                "y": 4,
                 "z": -94
             },
             "rotation": {
                 "x": 0,
-                "y": 176,
+                "y": 156,
                 "z": 0
             },
             "scale": {
-                "x": 12,
-                "y": 12,
-                "z": 12
+                "x": 15,
+                "y": 15,
+                "z": 15
             },
             "collider": true
         }, 
@@ -248,16 +248,17 @@
             "type": "model",
             "src": "backModel.glb",
             "alt": "",
+            "material": "standard",
             "wall": "none",
             "position": {
-                "x": 33,
+                "x": 32,
                 "y": 7,
                 "z": -106
             },
             "rotation": {
                 "x": 0,
                 "y": 154,
-                "z": 2
+                "z": -2
             },
             "scale": {
                 "x": 21,
@@ -563,16 +564,16 @@
     {
         "type": "pedestal",
             "id": "SqPedestal",
-        "position": { "x": -40, "y": -3, "z": 7 },
-        "size": { "w": 5, "h": 9, "d": 9 },
+        "position": { "x": -40, "y": -2, "z": 7 },
+        "size": { "w": 5, "h": 8, "d": 9 },
         "rotation": { "y": 0 },
         "book": 2
     },
     {
         "type": "pedestal",
-        "id": "RectPedestal",
-        "position": { "x": 24, "y": -3, "z": 12 },
-        "size": { "w": 6, "h": 9, "d": 5 },
+        "id": "RecPedestal",
+        "position": { "x": 24, "y": -2, "z": 12 },
+        "size": { "w": 6, "h": 8, "d": 5 },
         "rotation": { "y": 0 },
         "book": 1
     },
@@ -580,7 +581,7 @@
         "type": "pedestal",
         "id": "mRoomPedestal",
         "position": { "x": -5, "y": -2, "z": -56 },
-        "size": { "w": 3.5, "h": 7, "d": 12 },
+        "size": { "w": 5, "h": 8, "d": 16 },
         "rotation": { "y": 90 }
     },
     {

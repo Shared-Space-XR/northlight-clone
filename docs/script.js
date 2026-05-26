@@ -202,7 +202,7 @@
             });
             
             if (mode === 'game') {
-                pointerLockReady = false; // require one extra click inside the canvas
+                pointerLockReady = true;
                 gameModeBtn.classList.add('active');
                 exploreModeBtn.classList.remove('active');
                 controlsInfo.innerHTML = isMobile
@@ -212,7 +212,6 @@
                     : `<p><strong>Game Mode Controls:</strong></p>
                        <p>WASD / Arrow Keys - Move</p>
                        <p>Mouse - Look around</p>
-                       <p style="color: red; background:white; padding:2px 5px;text-transform: uppercase;">Click anywhere to enable navigation</p>
                        <p>(press ESC to release mouse lock)</p>`;
 
                 if (isMobile) {
@@ -221,6 +220,16 @@
                     isLocked = true; // touch doesn't use pointer lock but movement always active
                 } else {
                     isLocked = false;
+                    const lockCanvas = () => {
+                        if (!renderer.xr.isPresenting) {
+                            renderer.domElement.requestPointerLock();
+                        }
+                    };
+                    if (document.fullscreenEnabled && !document.fullscreenElement) {
+                        document.documentElement.requestFullscreen().catch(() => {}).then(lockCanvas).catch(() => {});
+                    } else {
+                        lockCanvas();
+                    }
                 }
                 camera.position.set(-4, 5.2, 20);
                 yaw = 0; // Face inward (toward the gallery)
@@ -231,9 +240,6 @@
                 walkDebugGroup.visible = debugMode;
                 if (roofGroup) roofGroup.visible = true;
                 vrButton.style.display = '';
-                if (document.fullscreenEnabled && !document.fullscreenElement) {
-                    document.documentElement.requestFullscreen().catch(() => {});
-                }
                 needsRender = true;
             } else {
                 gameModeBtn.classList.remove('active');
@@ -1424,22 +1430,23 @@
         }
 
         // Convert all meshes in a GLB clone to MeshBasicMaterial preserving original map/color
-        function applyGLBMaterials(object, flag) {
+        function applyGLBMaterials(object, flag, useStandard = false) {
             object.traverse((child) => {
                 if (child.isMesh && child.material) {
-                    const mats = Array.isArray(child.material) ? child.material : [child.material];
-                    const basics = mats.map(m => new THREE.MeshBasicMaterial({
-                        map: m.map || null,
-                        color: m.color ? m.color.clone() : new THREE.Color(0xffffff),
-                        side: THREE.DoubleSide
-                    }));
-                    child.material = Array.isArray(child.material) ? basics : basics[0];
+                    if (!useStandard) {
+                        const mats = Array.isArray(child.material) ? child.material : [child.material];
+                        const basics = mats.map(m => new THREE.MeshBasicMaterial({
+                            map: m.map || null,
+                            color: m.color ? m.color.clone() : new THREE.Color(0xffffff),
+                            side: THREE.DoubleSide
+                        }));
+                        child.material = Array.isArray(child.material) ? basics : basics[0];
+                    }
                     if(flag === false) {
                         return;
                     }
                     child.castShadow = true;  // Enable shadow casting
                     child.receiveShadow = true;  // Enable shadow receiving
-                    
                 }
             });
         }
@@ -3118,7 +3125,7 @@
             gltfLoader.load('shows/' + showTitle + '/' + item.src, (gltf) => {
                 const model = gltf.scene;
                 model.scale.set(item.scale.x, item.scale.y, item.scale.z);
-                applyGLBMaterials(model, false);
+                applyGLBMaterials(model, false, item.material === 'standard');
                 if (item.opacity !== undefined && item.opacity < 1) {
                     model.traverse(child => {
                         if (child.isMesh && child.material) {
