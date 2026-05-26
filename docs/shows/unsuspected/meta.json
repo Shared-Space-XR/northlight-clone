@@ -228,7 +228,7 @@
             "alt": "",
             "wall": "none",
             "position": {
-                "x": 10,
+                "x": 8,
                 "y": 4,
                 "z": -94
             },
@@ -244,6 +244,28 @@
             },
             "collider": true
         }, 
+                {
+            "type": "image",
+            "src": "backImage.png",
+            "alt": "",
+            "frame": "poster1",
+            "wall": "none",
+            "position": {
+                "x": 8.3,
+                "y": 4,
+                "z": -94
+            },
+            "rotation": {
+                "x": 0,
+                "y": 157,
+                "z": 0.1
+            },
+            "scale": {
+                "x": 0.0135,
+                "y": 0.0135,
+                "z": 0.0135
+            }
+        }, 
         {
             "type": "model",
             "src": "backModel.glb",
@@ -258,7 +280,7 @@
             "rotation": {
                 "x": 0,
                 "y": 154,
-                "z": -2
+                "z": 1
             },
             "scale": {
                 "x": 21,

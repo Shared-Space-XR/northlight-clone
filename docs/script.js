@@ -3067,9 +3067,8 @@
                         });
                     } else {
                         // Named building asset: "poster1" → ./building/poster1.glb, etc.
-                        // The mesh named "Image" in the GLB receives the image texture;
-                        // the GLB is scaled so that mesh fits the loaded image dimensions.
-                        plane.visible = false;
+                        // The flat plane keeps the texture; the GLB provides the frame border only.
+                        // The GLB's own "Image" mesh is hidden to avoid double-rendering.
                         gltfLoader.load('./building/' + frame + '.glb', (gltf) => {
                             let imageMesh = null;
                             gltf.scene.traverse(child => {
@@ -3085,13 +3084,8 @@
                                 });
                             }
                             if (imageMesh) {
-                                imageMesh.material = new THREE.MeshBasicMaterial({
-                                    map: material.map,
-                                    transparent: material.transparent,
-                                    alphaTest: material.alphaTest,
-                                    opacity: material.opacity,
-                                    side: THREE.DoubleSide
-                                });
+                                // Hide the placeholder mesh; the flat plane already shows the texture
+                                imageMesh.visible = false;
                                 const box = new THREE.Box3().setFromObject(imageMesh);
                                 const meshSize = box.getSize(new THREE.Vector3());
                                 const scaleX = meshSize.x > 0 ? w / meshSize.x : 1;
@@ -3101,11 +3095,16 @@
                             frameGroup.add(gltf.scene);
                             needsRender = true;
                         }, undefined, err => {
-                            // GLB not found — fall back to plain image
-                            plane.visible = true;
+                            // GLB not found — plane already visible, nothing extra needed
+                            console.warn('Frame GLB not found: ./building/' + frame + '.glb', err);
                             console.warn('Frame GLB not found: ./building/' + frame + '.glb', err);
                         });
                     }
+                }
+
+                // floorAnchor: shift y so the bottom edge sits at item.position.y
+                if (item.floorAnchor && (item.wall === 'none' || !item.wall)) {
+                    imageGroup.position.y = item.position.y + (h * item.scale.y) / 2;
                 }
 
                 needsRender = true;
@@ -3135,6 +3134,11 @@
                     });
                 }
                 positionOnWall(model, item);
+                if (item.floorAnchor && (item.wall === 'none' || !item.wall)) {
+                    model.updateWorldMatrix(true, true);
+                    const _bbox = new THREE.Box3().setFromObject(model);
+                    model.position.y += item.position.y - _bbox.min.y;
+                }
                 scene.add(model);
                 if (item.collider === true) addObjectCollider(model);
                 addItemLight(model);
