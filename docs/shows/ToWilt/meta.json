@@ -20,10 +20,7 @@
             "wall": "Wall12",
             "position": {"x": -32.18, "y": -7.47, "z": -42.15},
             "rotation": { "x": 0, "y": 90, "z": 0 },
-            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
-
-
-            
+            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }            
         },
         {
             "type": "image",
@@ -183,26 +180,32 @@
             "rotation": { "x": 0, "y": 0, "z": 0 },
             "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
         },
-
-        {
-            "type": "model",
-            "src": "object_0.glb",
+   {
+            "type": "video",
+            "src": "video.mp4",
             "alt": "",
+            "volume": 0.5,
+            "frame": "floorTV1.glb",
             "wall": "none",
-            "position": { "x": 6.13, "y": 5.5, "z": -7.16 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
-            "scale": { "x": 15, "y": 15, "z": 15 },
-            "collider": false
-        },
-        {
-            "type": "model",
-            "src": "object_0(1).glb",
-            "alt": "",
-            "wall": "none",
-            "position": { "x": 4.05, "y": 5.5, "z": -8.46 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
-            "scale": { "x": 15, "y": 15, "z": 15 },
-            "collider": false
+            "position": {
+                "x": 16,
+                "y": 15,
+                "z": -0.60
+            },
+            "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0
+            },
+            "scale": {
+                "x": 10,
+                "y": 10,
+                "z": 10
+            },
+            "collider": true,
+            "videoOffset": { "x": 0, "y": 2.95, "z": -1.37 },
+            "videoRotation": { "x": 0, "y": 180, "z": 0 },
+            "videoScale": { "x": 0.64, "y": 0.4, "z": 1 }
         },
         {
             "type": "model",
@@ -211,86 +214,6 @@
             "wall": "none",
             "position": { "x": 2.25, "y": 5.5, "z": -7.19 },
             "rotation": { "x": 0, "y": 0, "z": 0 },
-            "scale": { "x": 15, "y": 15, "z": 15 },
-            "collider": false
-        },
-        {
-            "type": "model",
-            "src": "object_0(3).glb",
-            "alt": "",
-            "wall": "none",
-            "position": { "x": -3.48, "y": 5.5, "z": -5.73 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
-            "scale": { "x": 15, "y": 15, "z": 15 },
-            "collider": false
-        },
-        {
-            "type": "model",
-            "src": "object_0(4).glb",
-            "alt": "",
-            "wall": "none",
-            "position": { "x": -9.46, "y": 5.5, "z": -3.16 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
-            "scale": { "x": 15, "y": 15, "z": 15 },
-            "collider": false
-        },
-        {
-            "type": "model",
-            "src": "object_0(5).glb",
-            "alt": "",
-            "wall": "none",
-            "position": { "x": -9.24, "y": 5.5, "z": -6.63 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
-            "scale": { "x": 15, "y": 15, "z": 15 },
-            "collider": false
-        },
-        {
-            "type": "model",
-            "src": "object_0(6).glb",
-            "alt": "",
-            "wall": "none",
-            "position": { "x": -4.17, "y": 5.5, "z": -5.45 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
-            "scale": { "x": 15, "y": 15, "z": 15 },
-            "collider": false
-        },
-        {
-            "type": "model",
-            "src": "object_0(7).glb",
-            "alt": "",
-            "wall": "none",
-            "position": { "x": -1.32, "y": 5.5, "z": -8.51 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
-            "scale": { "x": 15, "y": 15, "z": 15 },
-            "collider": false
-        },
-        {
-            "type": "model",
-            "src": "object_2.glb",
-            "alt": "",
-            "wall": "none",
-            "position": { "x": -24.68, "y": 3.8, "z": -133.73 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
-            "scale": { "x": 15, "y": 15, "z": 15 },
-            "collider": false
-        },
-        {
-            "type": "model",
-            "src": "object_3.glb",
-            "alt": "",
-            "wall": "none",
-            "position": { "x": 4.22, "y": 4.1, "z": -95.05 },
-            "rotation": { "x": 0, "y": 135, "z": 0 },
-            "scale": { "x": 12, "y": 12, "z": 12 },
-            "collider": false
-        },
-        {
-            "type": "model",
-            "src": "object_4.glb",
-            "alt": "",
-            "wall": "none",
-            "position": { "x": 19.7, "y": 3.8, "z": -112.99 },
-            "rotation": { "x": 0, "y": 90, "z": 0 },
             "scale": { "x": 15, "y": 15, "z": 15 },
             "collider": false
         }

@@ -3184,9 +3184,7 @@
                     opacity: (item.opacity !== undefined) ? item.opacity : 1
                 })
             );
-            if (item.scale) {
-                plane.scale.set(item.scale.x, item.scale.y, item.scale.z);
-            }
+
             video.volume = (item.volume !== undefined) ? Math.min(1, Math.max(0, item.volume)) : 1;
 
             // Positional audio — attaches to the plane so volume falls off with distance
@@ -3207,20 +3205,9 @@
             plane.add(sound);
             positionalAudios.push(sound);
 
-            positionOnWall(plane, item);
-            scene.add(plane);
-
-            // Register vo first so the VFC closure can reference it.
-            // _distant = true means the plane is beyond VIDEO_PAUSE_DISTANCE;
-            // when distant the video keeps playing (audio stays in sync) but
-            // we skip the GPU texture upload entirely.
+            // Register vo for distance-aware texture updates
             const vo = { video, texture: videoTex, plane, _distant: false };
             videoObjects.push(vo);
-
-            // Use requestVideoFrameCallback when available: texture upload only
-            // happens when the decoder produces a new frame AND the plane is close.
-            // Three.js r160+ also skips its own auto-update when the API exists,
-            // so distant videos incur zero GPU cost on the VFC path.
             if (typeof video.requestVideoFrameCallback === 'function') {
                 const scheduleVFC = () => {
                     video.requestVideoFrameCallback(() => {
@@ -3237,7 +3224,78 @@
             }
             // Fallback (no VFC): animate loop sets needsRender only when !_distant.
 
-            console.log('Added video to scene:', item.src);
+            if (item.frame) {
+                // Load custom GLB frame from the show folder; position video plane inside it
+                // using the same bbox-based screen-face approach as addTvToScene.
+                gltfLoader.load('shows/' + showTitle + '/' + item.frame, (gltf) => {
+                    const model = gltf.scene;
+                    if (item.scale) model.scale.set(item.scale.x, item.scale.y, item.scale.z);
+                    applyGLBMaterials(model, false);
+                    positionOnWall(model, item);
+                    scene.add(model);
+
+                    model.updateMatrixWorld(true);
+                    const bbox        = new THREE.Box3().setFromObject(model);
+                    const bboxCenter  = bbox.getCenter(new THREE.Vector3());
+                    const halfExtents = bbox.getSize(new THREE.Vector3()).multiplyScalar(0.5);
+                    const screenNormal = new THREE.Vector3(0, 0, 1).applyQuaternion(model.quaternion);
+                    const absN = new THREE.Vector3(
+                        Math.abs(screenNormal.x),
+                        Math.abs(screenNormal.y),
+                        Math.abs(screenNormal.z)
+                    );
+                    const halfDepth = halfExtents.dot(absN);
+                    plane.position.copy(bboxCenter).addScaledVector(screenNormal, halfDepth + 0.05);
+                    plane.quaternion.copy(model.quaternion);
+
+                    const DEG2RAD = Math.PI / 180;
+                    if (item.videoOffset) {
+                        plane.position.x += item.videoOffset.x || 0;
+                        plane.position.y += item.videoOffset.y || 0;
+                        plane.position.z += item.videoOffset.z || 0;
+                    }
+                    if (item.videoRotation) {
+                        plane.rotation.x += (item.videoRotation.x || 0) * DEG2RAD;
+                        plane.rotation.y += (item.videoRotation.y || 0) * DEG2RAD;
+                        plane.rotation.z += (item.videoRotation.z || 0) * DEG2RAD;
+                    }
+
+                    const vsRaw = item.videoScale ?? 1;
+                    const vsX = (typeof vsRaw === 'object') ? (vsRaw.x ?? 1) : vsRaw;
+                    const vsY = (typeof vsRaw === 'object') ? (vsRaw.y ?? 1) : vsRaw;
+                    const vsZ = (typeof vsRaw === 'object') ? (vsRaw.z ?? 1) : vsRaw;
+                    const bboxSize = bbox.getSize(new THREE.Vector3());
+                    const nx = Math.abs(screenNormal.x);
+                    const ny = Math.abs(screenNormal.y);
+                    const nz = Math.abs(screenNormal.z);
+                    let screenWidth, screenHeight;
+                    if (nz >= nx && nz >= ny) {
+                        screenWidth = bboxSize.x; screenHeight = bboxSize.y;
+                    } else if (nx >= ny) {
+                        screenWidth = bboxSize.z; screenHeight = bboxSize.y;
+                    } else {
+                        screenWidth = bboxSize.x; screenHeight = bboxSize.z;
+                    }
+                    plane.scale.set(screenWidth / w * vsX, screenHeight / h * vsY, vsZ);
+
+                    scene.add(plane);
+                    if (item.collider === true) addObjectCollider(model);
+                    console.log('Added video with frame to scene:', item.src);
+                }, undefined, err => {
+                    // Fall back to bare plane if frame GLB not found
+                    console.warn('Frame GLB not found:', item.frame, err);
+                    if (item.scale) plane.scale.set(item.scale.x, item.scale.y, item.scale.z);
+                    positionOnWall(plane, item);
+                    scene.add(plane);
+                });
+            } else {
+                if (item.scale) {
+                    plane.scale.set(item.scale.x, item.scale.y, item.scale.z);
+                }
+                positionOnWall(plane, item);
+                scene.add(plane);
+                console.log('Added video to scene:', item.src);
+            }
         }
 
         function addTvToScene(item, showTitle) {
