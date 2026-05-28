@@ -44,6 +44,147 @@
             "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
         },
         {
+            "type": "image",
+            "src": "_MG_0659 Large.jpeg",
+            "frame": "aluminum",
+            "alt": "",
+            "wall": "Wall12",
+            "position": { "x": 20, "y": 5, "z": 10.1},
+            "rotation": { "x": 10, "y": 0, "z": 0 },
+            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+        },
+        {
+            "type": "image",
+            "src": "_DSC0808 Large.jpeg",
+            "frame": "aluminum",
+            "alt": "",
+            "wall": "Wall12",
+            "position": { "x": 20, "y": 5, "z": 10.1},
+            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+        },
+        {
+            "type": "image",
+            "src": "back 4 Large.jpeg",
+            "frame": "aluminum",
+            "alt": "",
+            "wall": "Wall11",
+            "position": { "x": 24, "y": -7.47, "z": -12 },
+            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+        },
+        {
+            "type": "image",
+            "src": "_DSC08081 Large.jpeg",
+            "frame": "aluminum",
+            "alt": "",
+            "wall": "Wall11",
+            "position": { "x": 24, "y": -7.47, "z": -30 },
+            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+        },
+        {
+            "type": "image",
+            "src": "back 9 Large.jpeg",
+            "frame": "aluminum",
+            "alt": "",
+            "wall": "Wall11",
+            "position": { "x": 24, "y": -7.47, "z": -30 },
+            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+        },
+        {
+            "type": "image",
+            "src": "_DSC14789 copy Large.jpeg",
+            "frame": "aluminum",
+            "alt": "",
+            "wall": "Wall11",
+            "position": { "x": 24, "y": -7.47, "z": -30 },
+            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+        },
+        {
+            "type": "image",
+            "src": "_DSC1782 Large.jpeg",
+            "frame": "aluminum",
+            "alt": "",
+            "wall": "Wall11",
+            "position": { "x": 24, "y": -7.47, "z": -48 },
+            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+        },
+        {
+            "type": "image",
+            "src": "_DSC2657 Large.jpeg",
+            "frame": "aluminum",
+            "alt": "",
+            "wall": "Wall11",
+            "position": { "x": 24, "y": -7.47, "z": -48 },
+            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+        },
+        {
+            "type": "image",
+            "src": "_DSC26571 Large.jpeg",
+            "frame": "aluminum",
+            "alt": "",
+            "wall": "Wall11",
+            "position": { "x": 24, "y": -7.47, "z": -48 },
+            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+        },
+        {
+            "type": "image",
+            "src": "_DSC2803 Large.jpeg",
+            "frame": "aluminum",
+            "alt": "",
+            "wall": "Wall11",
+            "position": { "x": 24, "y": -7.47, "z": -66 },
+            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+        },
+        {
+            "type": "image",
+            "src": "_DSC9750 Large.jpeg",
+            "frame": "aluminum",
+            "alt": "",
+            "wall": "Wall11",
+            "position": { "x": 24, "y": -7.47, "z": -66 },
+            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+        },
+        {
+            "type": "image",
+            "src": "_DSC9751 Large.jpeg",
+            "frame": "aluminum",
+            "alt": "",
+            "wall": "Wall11",
+            "position": { "x": 24, "y": -7.47, "z": -66 },
+            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+        },
+        {
+            "type": "image",
+            "src": "_MG_0624 Large.jpeg",
+            "frame": "aluminum",
+            "alt": "",
+            "wall": "Wall11",
+            "position": { "x": 24, "y": -7.47, "z": -84 },
+            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+        },
+        {
+            "type": "image",
+            "src": "_MG_0644 Large.jpeg",
+            "frame": "aluminum",
+            "alt": "",
+            "wall": "Wall11",
+            "position": { "x": 24, "y": -7.47, "z": -84 },
+            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+        },
+
+        {
             "type": "model",
             "src": "object_0.glb",
             "alt": "",
