@@ -612,7 +612,7 @@
         const groundGeometry = new THREE.PlaneGeometry(84.8, 186);
         const groundMaterial = new THREE.MeshStandardMaterial({
             map: concreteFloorTexture,
-            color: 0xcccccc,  // Brighter for better lighting
+            color: 0xffffff,  // Brighter for better lighting
             roughness: 0.7,  // Slightly less rough for realism
             metalness: 0.0,
             side: THREE.DoubleSide
