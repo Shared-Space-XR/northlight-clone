@@ -18,27 +18,39 @@
             "src": "_DSC0904 The only event.jpg",
             "alt": "",
             "wall": "Wall12",
-            "position": {"x": -32.18, "y": -7.47, "z": -42.15},
+            "position": {"x": -32.18, "y": -5.47, "z": -42.15},
             "rotation": { "x": 0, "y": 90, "z": 0 },
-            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }            
+            "scale": { "x": 0.025, "y": 0.025, "z": 0.025 }            
         },
         {
             "type": "image",
             "src": "_DSC1478.jpg",
             "alt": "",
             "wall": "Wall11",
-            "position": { "x": 0.0, "y": -7.47, "z": -29.82 },
+            "position": { "x": 0.0, "y": -5.47, "z": -29.82 },
             "rotation": { "x": 0, "y": 0, "z": 0 },
-            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+            "scale": {  "x": 0.025, "y": 0.025, "z": 0.025 }
+        },
+                {
+            "type": "image",
+            "src": "Show description.png",
+            "alt": "",
+            "wall": "Wall11",
+            "position": { "x": 0.0, "y": -5.47, "z": 20.82 },
+            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "scale": {  "x": 0.018, "y": 0.018, "z": 0.018 }
         },
         {
             "type": "image",
             "src": "_DSC2508.jpg",
             "alt": "",
             "wall": "Wall11",
-            "position": {"x": -35.16, "y": -7.47, "z": -63.6 },
+            "position": {"x": -35.16, "y": -5.47, "z": -63.6 },
             "rotation": { "x": 0, "y": 90, "z": 0 },
-            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+            "scale": {  "x": 0.025, "y": 0.025, "z": 0.025 }
+        },
+        {
+            "_comment": "Start of large Wall12 image grid"
         },
         {
             "type": "image",
@@ -46,7 +58,7 @@
             "frame": "aluminum",
             "alt": "",
             "wall": "Wall12",
-            "position": { "x": 0, "y": 5, "z": -10.1},
+            "position": { "x": 0, "y": 5, "z": -9.1},
             "rotation": { "x": 0, "y": 180, "z": 0 },
             "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
         },
@@ -56,7 +68,7 @@
             "frame": "aluminum",
             "alt": "",
             "wall": "Wall12",
-            "position": { "x": 3.1, "y": 5, "z": -10.1},
+            "position": { "x": 5, "y": 5, "z": -9.1},
             "rotation": { "x": 0, "y": 180, "z": 0 },
             "scale": { "x": 0.005, "y": 0.005, "z": 0.005 }
         },
@@ -66,9 +78,9 @@
             "frame": "aluminum",
             "alt": "",
             "wall": "Wall12",
-            "position": { "x": 6.1, "y": 5, "z": -10.1 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
-            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+            "position": { "x": 10, "y": 5, "z": -9.1 },
+            "rotation": { "x": 0, "y": 180, "z": 0 },
+            "scale": { "x": 0.006, "y": 0.006, "z": 0.006 }
         },
         {
             "type": "image",
@@ -76,8 +88,8 @@
             "frame": "aluminum",
             "alt": "",
             "wall": "Wall12",
-            "position": {"x": 6.1, "y": 5, "z": -10.1},
-            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "position": {"x": 15, "y": 5, "z": -9.1},
+            "rotation": { "x": 0, "y": 180, "z": 0 },
             "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
         },
         {
@@ -86,9 +98,9 @@
             "frame": "aluminum",
             "alt": "",
             "wall": "Wall12",
-            "position": {"x": 6.1, "y": 5, "z": -10.1 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
-            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+            "position": {"x": 0, "y": 0.5, "z": -9.1 },
+            "rotation": { "x": 0, "y": 180, "z": 0 },
+            "scale": { "x": 0.006, "y": 0.006, "z": 0.006 }
         },
         {
             "type": "image",
@@ -96,8 +108,8 @@
             "frame": "aluminum",
             "alt": "",
             "wall": "Wall12",
-            "position": { "x": 6.1, "y": 5, "z": -10.1 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "position": { "x": 5, "y": 0.5, "z": -9.1 },
+            "rotation": { "x": 0, "y": 180, "z": 0 },
             "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
         },
         {
@@ -106,8 +118,8 @@
             "frame": "aluminum",
             "alt": "",
             "wall": "Wall12",
-            "position": { "x": 6.1, "y": 5, "z": -10.1 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "position": { "x": 10, "y": 0.5, "z": -9.1 },
+            "rotation": { "x": 0, "y": 180, "z": 0 },
             "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
         },
         {
@@ -116,8 +128,8 @@
             "frame": "aluminum",
             "alt": "",
             "wall": "Wall12",
-            "position": { "x": 6.1, "y": 5, "z": -10.1 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "position": { "x": 15, "y": 0.5, "z": -9.1 },
+            "rotation": { "x": 0, "y": 180, "z": 0 },
             "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
         },
         {
@@ -126,8 +138,8 @@
             "frame": "aluminum",
             "alt": "",
             "wall": "Wall12",
-            "position": { "x": 6.1, "y": 5, "z": -10.1 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "position": { "x": 0, "y": -4, "z": -9.1 },
+            "rotation": { "x": 0, "y": 180, "z": 0 },
             "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
         },
         {
@@ -136,8 +148,8 @@
             "frame": "aluminum",
             "alt": "",
             "wall": "Wall12",
-            "position": { "x": 6.1, "y": 5, "z": -10.1 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "position": { "x": 5, "y": -4, "z": -9.1 },
+            "rotation": { "x": 0, "y": 180, "z": 0 },
             "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
         },
         {
@@ -146,9 +158,9 @@
             "frame": "aluminum",
             "alt": "",
             "wall": "Wall12",
-            "position": { "x": 6.1, "y": 5, "z": -10.1 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
-            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+            "position": { "x": 10, "y": -4, "z": -9.1 },
+            "rotation": { "x": 0, "y": 180, "z": 0 },
+            "scale": { "x": 0.005, "y": 0.005, "z": 0.005 }
         },
         {
             "type": "image",
@@ -156,9 +168,9 @@
             "frame": "aluminum",
             "alt": "",
             "wall": "Wall12",
-            "position": { "x": 6.1, "y": 5, "z": -10.1 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
-            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+            "position": { "x": 15, "y": -4, "z": -9.1 },
+            "rotation": { "x": 0, "y": 180, "z": 0 },
+            "scale": { "x": 0.005, "y": 0.005, "z": 0.005 }
         },
         {
             "type": "image",
@@ -166,8 +178,8 @@
             "frame": "aluminum",
             "alt": "",
             "wall": "Wall12",
-            "position": { "x": 12.1, "y": 3, "z": -10.1 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "position": { "x": 0, "y": -8.5, "z": -9.1 },
+            "rotation": { "x": 0, "y": 180, "z": 0 },
             "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
         },
         {
@@ -176,11 +188,37 @@
             "frame": "aluminum",
             "alt": "",
             "wall": "Wall12",
-            "position": { "x": 6.1, "y": 5, "z": -10.1 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "position": { "x": 5, "y": -8.5, "z": -9.1 },
+            "rotation": { "x": 0, "y": 180, "z": 0 },
             "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
         },
-   {
+        {
+            "type": "image",
+            "src": "_DSC3136 Large.jpeg",
+            "frame": "aluminum",
+            "alt": "",
+            "wall": "Wall12",
+            "position": { "x": 10, "y": -8.5, "z": -9.1 },
+            "rotation": { "x": 0, "y": 180, "z": 0 },
+            "scale": { "x": 0.003, "y": 0.003, "z": 0.003 }
+        },
+        {
+            "type": "image",
+            "src": "_DSC0710 Large.jpeg",
+            "frame": "aluminum",
+            "alt": "",
+            "wall": "Wall12",
+            "position": { "x": 15, "y": -8.5, "z": -9.1 },
+            "rotation": { "x": 0, "y": 180, "z": 0 },
+            "scale": { "x": 0.004, "y": 0.004, "z": 0.004 }
+        },
+        {
+            "_comment": "End of large Wall12 image grid"
+        },
+        {
+            "_comment": "Start of TVs"
+        },
+        {
             "type": "video",
             "src": "video.mp4",
             "alt": "",
@@ -188,9 +226,9 @@
             "frame": "floorTV1.glb",
             "wall": "none",
             "position": {
-                "x": 16,
-                "y": 15,
-                "z": -0.60
+                "x": 3,
+                "y": 3.2,
+                "z": -1.60
             },
             "rotation": {
                 "x": 0,
@@ -203,17 +241,176 @@
                 "z": 10
             },
             "collider": true,
-            "videoOffset": { "x": 0, "y": 2.95, "z": -1.37 },
+            "videoOffset": { "x": -0.05, "y": 2.50, "z": -3.39 },
             "videoRotation": { "x": 0, "y": 180, "z": 0 },
-            "videoScale": { "x": 0.64, "y": 0.4, "z": 1 }
+            "videoScale": { "x": 0.62, "y": 0.47, "z": 1 }
+        },
+        {
+            "type": "video",
+            "src": "video2.mp4",
+            "alt": "",
+            "volume": 0.5,
+            "frame": "floorTV2.glb",
+            "wall": "none",
+            "position": {
+                "x": 9,
+                "y": 3.2,
+                "z": -2.50
+            },
+            "rotation": {
+                "x": 0,
+                "y": -20,
+                "z": 0
+            },
+            "scale": {
+                "x": 10,
+                "y": 10,
+                "z": 10
+            },
+            "collider": true,
+            "videoOffset": { "x": 1.10, "y": 2.86, "z": -3.24 },
+            "videoRotation": { "x": 0, "y": 0, "z": 0 },
+            "videoScale": { "x": 0.43, "y": 0.42, "z": 1 }
+        },
+        {
+            "type": "video",
+            "src": "video3.mp4",
+            "alt": "",
+            "volume": 0.5,
+            "frame": "floorTV3.glb",
+            "wall": "none",
+            "position": {
+                "x": -2.36,
+                "y": 3.2,
+                "z": -4.55
+            },
+            "rotation": {
+                "x": 0,
+                "y": 20,
+                "z": 0
+            },
+            "scale": {
+                "x": 10,
+                "y": 10,
+                "z": 10
+            },
+            "collider": true,
+            "videoOffset": { "x": -1.48, "y": 3.20, "z": -3.74 },
+            "videoRotation": { "x": 0, "y": 0, "z": 0 },
+            "videoScale": { "x": 0.43, "y": 0.35, "z": 1 }
+        },
+        {
+            "type": "video",
+            "src": "video4.mp4",
+            "alt": "",
+            "volume": 0.5,
+            "frame": "floorTV4.glb",
+            "wall": "none",
+            "position": {
+                "x": -2,
+                "y": 3.2,
+                "z": 1.0
+            },
+            "rotation": {
+                "x": 0,
+                "y": 25,
+                "z": 0
+            },
+            "scale": {
+                "x": 10,
+                "y": 10,
+                "z": 10
+            },
+            "collider": true,
+            "videoOffset": { "x": -1.08, "y": 2.90, "z": -2.40 },
+            "videoRotation": { "x": 0, "y": 180, "z": 0 },
+            "videoScale": { "x": 0.55, "y": 0.40, "z": 1 }
+        },
+        {
+            "type": "video",
+            "src": "video5.mp4",
+            "alt": "",
+            "volume": 0.5,
+            "frame": "floorTV5.glb",
+            "wall": "none",
+            "position": {
+                "x": -6.05,
+                "y": 3.2,
+                "z": -4.85
+            },
+            "rotation": {
+                "x": 0,
+                "y": 30,
+                "z": 0
+            },
+            "scale": {
+                "x": 10,
+                "y": 10,
+                "z": 10
+            },
+            "collider": true,
+            "videoOffset": { "x": -3.25, "y": 2.90, "z": -4.80 },
+            "videoRotation": { "x": 0, "y": 180, "z": 0 },
+            "videoScale": { "x": 0.30, "y": 0.40, "z": 1 }
+        },
+        {
+            "type": "video",
+            "src": "video6.mp4",
+            "alt": "",
+            "volume": 0.5,
+            "frame": "floorTV6.glb",
+            "wall": "none",
+            "position": {
+                "x": 2,
+                "y": 3.2,
+                "z": -5.50
+            },
+            "rotation": {
+                "x": 0,
+                "y": -10,
+                "z": 0
+            },
+            "scale": {
+                "x": 10,
+                "y": 10,
+                "z": 10
+            },
+            "collider": true,
+            "videoOffset": { "x": 0.40, "y": 2.86, "z": -2.80 },
+            "videoRotation": { "x": 0, "y": 0, "z": 0 },
+            "videoScale": { "x": 0.46, "y": 0.42, "z": 1 }
+        },
+        {
+            "_comment": "End of TVs"
+        }
+    ,
+    {
+            "type": "model",
+            "src": "printer.glb",
+            "alt": "",
+            "wall": "none",
+            "position": { "x": -24.68, "y": 3.8, "z": -133.73 },
+            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "scale": { "x": 15, "y": 15, "z": 15 },
+            "collider": false
+    },
+        {
+            "type": "model",
+            "src": "tank_tv.glb",
+            "alt": "",
+            "wall": "none",
+            "position": { "x": 4.22, "y": 4.1, "z": -95.05 },
+            "rotation": { "x": 0, "y": 135, "z": 0 },
+            "scale": { "x": 12, "y": 12, "z": 12 },
+            "collider": false
         },
         {
             "type": "model",
-            "src": "object_0(2).glb",
+            "src": "tank.glb",
             "alt": "",
             "wall": "none",
-            "position": { "x": 2.25, "y": 5.5, "z": -7.19 },
-            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "position": { "x": 19.7, "y": 3.8, "z": -112.99 },
+            "rotation": { "x": 0, "y": 90, "z": 0 },
             "scale": { "x": 15, "y": 15, "z": 15 },
             "collider": false
         }
