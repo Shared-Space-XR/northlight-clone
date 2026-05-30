@@ -413,6 +413,48 @@
             "rotation": { "x": 0, "y": 90, "z": 0 },
             "scale": { "x": 15, "y": 15, "z": 15 },
             "collider": false
+        },
+        {
+            "_comment": "Start of tank image attachments"
+        },
+        {
+            "type": "image",
+            "src": "tank_1.png",
+            "alt": "",
+            "wall": "none",
+            "position": { "x": 17.7, "y": 8.0, "z": -112.99 },
+            "rotation": { "x": 0, "y": 90, "z": 0 },
+            "scale": { "x": 0.009, "y": 0.009, "z": 0.009 }
+        },
+                {
+            "type": "image",
+            "src": "tank_1.png",
+            "alt": "",
+            "wall": "none",
+            "position": { "x": 21.5, "y": 8.0, "z": -112.99 },
+            "rotation": { "x": 0, "y": 90, "z": 0 },
+            "scale": { "x": 0.009, "y": 0.009, "z": 0.009 }
+        },
+        {
+            "type": "image",
+            "src": "tank_2.png",
+            "alt": "",
+            "wall": "none",
+            "position": { "x": 19.5, "y": 8.5, "z": -118.99 },
+            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "scale": { "x": 0.005, "y": 0.005, "z": 0.005 }
+        },
+                {
+            "type": "image",
+            "src": "tank_2.png",
+            "alt": "",
+            "wall": "none",
+            "position": { "x": 19.5, "y": 8.5, "z": -106.99 },
+            "rotation": { "x": 0, "y": 0, "z": 0 },
+            "scale": { "x": 0.005, "y": 0.005, "z": 0.005 }
+        },
+        {
+            "_comment": "End of tank image attachments"
         }
     ],
     "furniture": []
